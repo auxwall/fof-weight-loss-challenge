@@ -1,0 +1,127 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum BranchName {
+  AL_RASHIDIYA
+  AL_BARSHA
+  ABU_HAIL
+  AL_NAHDA
+}
+
+enum ChallengeStatus {
+  REGISTERED       // registered, no Day-1 weigh-in yet
+  ACTIVE           // Day-1 logged, within 31-day window
+  COMPLETED        // Day-30/31 logged successfully
+  DISQUALIFIED     // did not return within 31 days
+}
+
+enum StaffRole {
+  STAFF
+  SUPER_ADMIN
+}
+
+enum WeighInType {
+  DAY_1
+  FINAL
+}
+
+model Branch {
+  id        String     @id @default(cuid())
+  name      BranchName @unique
+  label     String     // e.g. "Al Barsha"
+  address   String?    // e.g. "Barsha Heights (Tecom)"
+  createdAt DateTime   @default(now())
+
+  staff     Staff[]
+  users     User[]     @relation("RegisteredBranch")
+  weighIns  WeighIn[]
+}
+
+model Staff {
+  id           String    @id @default(cuid())
+  username     String    @unique
+  passwordHash String
+  name         String?   // display name
+  role         StaffRole @default(STAFF)
+  branchId     String?   // null for SUPER_ADMIN
+  branch       Branch?   @relation(fields: [branchId], references: [id])
+  createdAt    DateTime  @default(now())
+
+  weighInsLogged WeighIn[] @relation("LoggedByStaff")
+}
+
+model User {
+  id                 String          @id @default(cuid())
+  name               String
+  emiratesId         String          @unique
+  mobile             String          @unique
+  email              String          @unique
+  gender             Gender
+  registeredBranchId String
+  registeredBranch   Branch          @relation("RegisteredBranch", fields: [registeredBranchId], references: [id])
+
+  status             ChallengeStatus @default(REGISTERED)
+
+  day1Date           DateTime?       // set when Day-1 weight logged
+  deadlineDate       DateTime?       // day1Date + 30 days (end of Day 31)
+  disqualifiedAt     DateTime?
+
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+
+  weighIns           WeighIn[]
+  winner             Winner?
+}
+
+model WeighIn {
+  id              String      @id @default(cuid())
+  userId          String
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type            WeighInType // DAY_1 or FINAL
+  weightKg        Float
+  branchId        String
+  branch          Branch      @relation(fields: [branchId], references: [id])
+  loggedByStaffId String
+  loggedByStaff   Staff       @relation("LoggedByStaff", fields: [loggedByStaffId], references: [id])
+
+  photoUrl        String?     // URL path to scale weight photo proof
+  signatureUrl    String?     // URL path to participant digital signature image
+  pdfUrl          String?     // generated certificate file reference
+
+  createdAt       DateTime    @default(now())
+
+  @@unique([userId, type])
+}
+
+model ChallengeSettings {
+  id                String    @id @default("singleton")
+  registrationStart DateTime?
+  registrationEnd   DateTime?
+  finalizeDate      DateTime? // date after which SuperAdmin can finalize winners
+  rulesText         String?   @db.Text
+  termsText         String?   @db.Text
+  updatedAt         DateTime  @updatedAt
+}
+
+model Winner {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  position   Int      // 1, 2, 3
+  kgLost     Float
+  prizeAed   Int
+  selectedAt DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

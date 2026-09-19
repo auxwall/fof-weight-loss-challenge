@@ -1,0 +1,307 @@
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { getSession } from "@/lib/auth";
+import { calculateDeadlineDubai, nowDubai, getDaysRemaining, getFinalWeighInWindow } from "@/lib/dayjs";
+import { sendDay1Email, sendFinalResultEmail } from "@/lib/mailer";
+import { generateChallengePdf } from "@/lib/pdf";
+import { saveNewImage } from "@/lib/imageHandler";
+
+export async function POST(req: NextRequest) {
+  try {
+    const session = await getSession();
+    if (!session || (session.role !== "STAFF" && session.role !== "SUPER_ADMIN")) {
+      return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const { userId, type, weightKg, signatureDataUrl, branchId, scalePhoto } = body;
+
+    if (!userId || !type || weightKg === undefined || weightKg === null) {
+      return NextResponse.json(
+        { error: "Participant ID, weigh-in type, and weight (kg) are required." },
+        { status: 400 }
+      );
+    }
+
+    const weightNum = parseFloat(weightKg);
+    if (isNaN(weightNum) || weightNum <= 25 || weightNum > 350) {
+      return NextResponse.json(
+        { error: "Please enter a valid weight in kg (between 25 and 350 kg)." },
+        { status: 400 }
+      );
+    }
+
+    // Determine branch: staff branch or requested branch
+    let effectiveBranchId = session.branchId || branchId;
+    if (!effectiveBranchId) {
+      const firstBranch = await prisma.branch.findFirst();
+      effectiveBranchId = firstBranch?.id;
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        registeredBranch: true,
+        weighIns: { include: { branch: true, loggedByStaff: true } },
+      },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "Participant not found." }, { status: 404 });
+    }
+
+    const now = nowDubai().toDate();
+
+    // ==========================================
+    // CASE 1: DAY_1 WEIGH-IN
+    // ==========================================
+    if (type === "DAY_1") {
+      if (user.status !== "REGISTERED") {
+        return NextResponse.json(
+          { error: `Cannot log Day-1 weigh-in. Participant is currently in '${user.status}' state.` },
+          { status: 400 }
+        );
+      }
+
+      const existingDay1 = user.weighIns.find((w) => w.type === "DAY_1");
+      if (existingDay1) {
+        return NextResponse.json(
+          { error: "Day-1 weigh-in has already been recorded for this participant." },
+          { status: 400 }
+        );
+      }
+
+      const deadline = calculateDeadlineDubai(now);
+
+      // Save scale photo proof if provided
+      let scalePhotoUrl: string | null = null;
+      if (scalePhoto) {
+        try {
+          scalePhotoUrl = await saveNewImage({
+            base64Data: scalePhoto,
+            folder: "scales",
+            fileName: `scale_day1_${user.id}_${Date.now()}`,
+          });
+        } catch (photoErr) {
+          console.error("Failed to save Day-1 scale photo:", photoErr);
+        }
+      }
+
+      // Execute atomic transaction: create WeighIn and update User status
+      const [weighIn, updatedUser] = await prisma.$transaction([
+        prisma.weighIn.create({
+          data: {
+            userId: user.id,
+            type: "DAY_1",
+            weightKg: weightNum,
+            branchId: effectiveBranchId,
+            loggedByStaffId: session.userId,
+            photoUrl: scalePhotoUrl,
+          },
+          include: { branch: true },
+        }),
+        prisma.user.update({
+          where: { id: user.id },
+          data: {
+            status: "ACTIVE",
+            day1Date: now,
+            deadlineDate: deadline,
+          },
+        }),
+      ]);
+
+      // Trigger Email #2
+      try {
+        await sendDay1Email({
+          email: user.email,
+          name: user.name,
+          userId: user.id,
+          weightKg: weightNum,
+          branchName: weighIn.branch.label,
+          day1Date: now,
+          deadlineDate: deadline,
+        });
+      } catch (err) {
+        console.error("Day-1 email dispatch failed:", err);
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: "Day-1 weigh-in logged successfully. 30-day challenge clock started!",
+        user: updatedUser,
+        weighIn,
+      });
+    }
+
+    // ==========================================
+    // CASE 2: FINAL WEIGH-IN
+    // ==========================================
+    if (type === "FINAL") {
+      if (user.status !== "ACTIVE") {
+        return NextResponse.json(
+          { error: `Cannot log Final weigh-in. Participant is currently '${user.status}'.` },
+          { status: 400 }
+        );
+      }
+
+      // Strict Day 30 or Day 31 Return Window Validation
+      const windowInfo = getFinalWeighInWindow(user.day1Date, user.deadlineDate);
+      if (windowInfo.status === "EXPIRED") {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { status: "DISQUALIFIED", disqualifiedAt: now },
+        });
+        return NextResponse.json(
+          { error: windowInfo.message },
+          { status: 400 }
+        );
+      }
+
+      if (!windowInfo.isEligible) {
+        return NextResponse.json(
+          { error: windowInfo.message },
+          { status: 400 }
+        );
+      }
+
+      if (!signatureDataUrl) {
+        return NextResponse.json(
+          { error: "Digital signature is required to complete final weigh-in." },
+          { status: 400 }
+        );
+      }
+
+      // Retrieve Day-1 record
+      const day1Record = user.weighIns.find((w) => w.type === "DAY_1");
+      if (!day1Record) {
+        return NextResponse.json(
+          { error: "Day-1 record not found for this participant." },
+          { status: 400 }
+        );
+      }
+
+      const kgLost = parseFloat((day1Record.weightKg - weightNum).toFixed(1));
+
+      // Save scale photo proof if provided
+      let scalePhotoUrl: string | null = null;
+      if (scalePhoto) {
+        try {
+          scalePhotoUrl = await saveNewImage({
+            base64Data: scalePhoto,
+            folder: "scales",
+            fileName: `scale_final_${user.id}_${Date.now()}`,
+          });
+        } catch (photoErr) {
+          console.error("Failed to save Final scale photo:", photoErr);
+        }
+      }
+
+      // Save signature as PNG image file and get URL path
+      let savedSignatureUrl: string | null = null;
+      if (signatureDataUrl) {
+        try {
+          savedSignatureUrl = await saveNewImage({
+            base64Data: signatureDataUrl,
+            folder: "signatures",
+            fileName: `signature_${user.id}_${Date.now()}`,
+            extension: "png",
+          });
+        } catch (sigErr) {
+          console.error("Failed to save digital signature image:", sigErr);
+        }
+      }
+
+      const existingFinal = user.weighIns.find((w) => w.type === "FINAL");
+      if (existingFinal) {
+        return NextResponse.json(
+          { error: "Final weigh-in has already been recorded for this participant." },
+          { status: 400 }
+        );
+      }
+
+      // Execute atomic transaction: record Final weigh-in and update User status
+      const [finalWeighIn, updatedUser] = await prisma.$transaction([
+        prisma.weighIn.create({
+          data: {
+            userId: user.id,
+            type: "FINAL",
+            weightKg: weightNum,
+            branchId: effectiveBranchId,
+            loggedByStaffId: session.userId,
+            photoUrl: scalePhotoUrl,
+            signatureUrl: savedSignatureUrl || signatureDataUrl,
+          },
+          include: { branch: true },
+        }),
+        prisma.user.update({
+          where: { id: user.id },
+          data: {
+            status: "COMPLETED",
+          },
+        }),
+      ]);
+
+      // Fetch challenge settings for rules text
+      const settings = await prisma.challengeSettings.findUnique({
+        where: { id: "singleton" },
+      });
+
+      // Generate PDF Certificate
+      let pdfBytes: Uint8Array | null = null;
+      try {
+        pdfBytes = await generateChallengePdf({
+          userName: user.name,
+          userId: user.id,
+          emiratesId: user.emiratesId,
+          mobile: user.mobile,
+          email: user.email,
+          branchName: finalWeighIn.branch.label,
+          day1WeightKg: day1Record.weightKg,
+          day1Date: day1Record.createdAt,
+          finalWeightKg: weightNum,
+          finalDate: now,
+          kgLost: kgLost,
+          signatureDataUrl: signatureDataUrl,
+          staffName: session.name || session.username,
+          rulesText: settings?.rulesText,
+        });
+      } catch (pdfErr) {
+        console.error("PDF generation failed:", pdfErr);
+      }
+
+      // Trigger Email #3
+      if (pdfBytes) {
+        try {
+          await sendFinalResultEmail({
+            email: user.email,
+            name: user.name,
+            userId: user.id,
+            day1WeightKg: day1Record.weightKg,
+            finalWeightKg: weightNum,
+            kgLost: kgLost,
+            pdfBytes: pdfBytes,
+          });
+        } catch (mailErr) {
+          console.error("Final result email failed:", mailErr);
+        }
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: "Final weigh-in successfully recorded and verified!",
+        user: updatedUser,
+        kgLost,
+        day1Weight: day1Record.weightKg,
+        finalWeight: weightNum,
+      });
+    }
+
+    return NextResponse.json({ error: "Invalid weigh-in type." }, { status: 400 });
+  } catch (error: any) {
+    console.error("Weigh-in processing error:", error);
+    return NextResponse.json(
+      { error: "Failed to process weigh-in. Please try again." },
+      { status: 500 }
+    );
+  }
+}
