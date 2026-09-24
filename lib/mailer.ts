@@ -479,6 +479,7 @@ export async function sendFinalResultEmail(params: {
 }): Promise<{ success: boolean; mocked?: boolean }> {
   const { email, name, userId, day1WeightKg, finalWeightKg, kgLost, pdfBytes } = params;
   const transporter = createTransporter();
+  const logoAttachment = getLogoAttachment();
   const kgLostText =
     kgLost > 0
       ? `-${Math.abs(kgLost).toFixed(3)} kg`
@@ -606,22 +607,24 @@ export async function sendFinalResultEmail(params: {
     });
 
     // Send copy of the signed PDF certificate to company email
-    try {
-      await transporter.sendMail({
-        from: FROM_HEADER,
-        to: COMPANY_CERTIFICATE_EMAIL,
-        subject: `📄 Participant Certificate: ${name} (${userId}) — Lost ${kgLostText}`,
-        text: `Official signed PDF certificate of completion for participant ${name} (ID: ${userId}).\n\nStarting Weight: ${Number(day1WeightKg).toFixed(3)} kg\nFinal Weight: ${Number(finalWeightKg).toFixed(3)} kg\nTotal Lost: ${kgLostText}\n\nThe signed PDF certificate is attached.`,
-        attachments: [
-          {
-            filename: `WeightLossChallenge-${userId}.pdf`,
-            content: Buffer.from(pdfBytes),
-            contentType: "application/pdf",
-          },
-        ],
-      });
-    } catch (companyMailErr) {
-      console.error("Failed to send certificate to company email:", companyMailErr);
+    if (COMPANY_CERTIFICATE_EMAIL) {
+      try {
+        await transporter.sendMail({
+          from: FROM_HEADER,
+          to: COMPANY_CERTIFICATE_EMAIL,
+          subject: `📄 Participant Certificate: ${name} (${userId}) — Lost ${kgLostText}`,
+          text: `Official signed PDF certificate of completion for participant ${name} (ID: ${userId}).\n\nStarting Weight: ${Number(day1WeightKg).toFixed(3)} kg\nFinal Weight: ${Number(finalWeightKg).toFixed(3)} kg\nTotal Lost: ${kgLostText}\n\nThe signed PDF certificate is attached.`,
+          attachments: [
+            {
+              filename: `WeightLossChallenge-${userId}.pdf`,
+              content: Buffer.from(pdfBytes),
+              contentType: "application/pdf",
+            },
+          ],
+        });
+      } catch (companyMailErr) {
+        console.error("Failed to send certificate to company email:", companyMailErr);
+      }
     }
 
     return { success: true };

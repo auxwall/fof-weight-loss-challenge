@@ -506,8 +506,8 @@ export async function generateTermsAgreementPdf(data: TermsAgreementPdfData): Pr
 
   y -= boxHeight + 14;
 
-  // SECTION 1: OFFICIAL CHALLENGE RULES
-  page.drawText("SECTION 1: OFFICIAL CHALLENGE RULES", {
+  // TERMS & CONDITIONS & RULES (Directly from database settings, identical to /terms page)
+  page.drawText("CHALLENGE AGREEMENT, RULES & TERMS AND CONDITIONS", {
     x: marginX,
     y,
     size: 8.5,
@@ -516,37 +516,11 @@ export async function generateTermsAgreementPdf(data: TermsAgreementPdfData): Pr
   });
   y -= 11;
 
-  const rulesLines = wrapParagraph(rulesText, contentWidth, 7, fontRegular);
-  for (const line of rulesLines) {
-    if (line === "") {
-      y -= 3;
-      continue;
-    }
-    page.drawText(line, {
-      x: marginX,
-      y,
-      size: 7,
-      font: fontRegular,
-      color: cDark,
-    });
-    y -= 10;
-  }
+  // Combine termsText (from database) and rulesText if separate, ensuring the exact database terms are displayed
+  const combinedAgreementText = termsText || rulesText;
+  const agreementLines = wrapParagraph(combinedAgreementText, contentWidth, 7, fontRegular);
 
-  y -= 6;
-
-  // SECTION 2: TERMS AND CONDITIONS
-  page.drawText("SECTION 2: PARTICIPANT TERMS & CONDITIONS", {
-    x: marginX,
-    y,
-    size: 8.5,
-    font: fontBold,
-    color: cRed,
-  });
-  y -= 11;
-
-  const termsLines = wrapParagraph(termsText, contentWidth, 7, fontRegular);
-
-  for (const line of termsLines) {
+  for (const line of agreementLines) {
     if (line === "") {
       y -= 3;
       continue;
@@ -559,7 +533,7 @@ export async function generateTermsAgreementPdf(data: TermsAgreementPdfData): Pr
       drawPageHeader(2);
       y = PAGE_H - 50;
 
-      page.drawText("SECTION 2: PARTICIPANT TERMS & CONDITIONS (CONTINUED)", {
+      page.drawText("CHALLENGE AGREEMENT & TERMS AND CONDITIONS (CONTINUED)", {
         x: marginX,
         y,
         size: 8.5,
@@ -577,6 +551,46 @@ export async function generateTermsAgreementPdf(data: TermsAgreementPdfData): Pr
       color: cDark,
     });
     y -= 10;
+  }
+
+  // If rulesText is distinct from termsText and both exist in DB, display additional rules section
+  if (data.rulesText && data.rulesText.trim() && data.termsText && data.termsText.trim() && data.rulesText.trim() !== data.termsText.trim()) {
+    y -= 6;
+    if (y < 155) {
+      page = pdfDoc.addPage([PAGE_W, PAGE_H]);
+      drawPageHeader(pdfDoc.getPageCount());
+      y = PAGE_H - 50;
+    }
+
+    page.drawText("ADDITIONAL CHALLENGE RULES", {
+      x: marginX,
+      y,
+      size: 8.5,
+      font: fontBold,
+      color: cRed,
+    });
+    y -= 11;
+
+    const rulesLines = wrapParagraph(rulesText, contentWidth, 7, fontRegular);
+    for (const line of rulesLines) {
+      if (line === "") {
+        y -= 3;
+        continue;
+      }
+      if (y < 155) {
+        page = pdfDoc.addPage([PAGE_W, PAGE_H]);
+        drawPageHeader(pdfDoc.getPageCount());
+        y = PAGE_H - 50;
+      }
+      page.drawText(line, {
+        x: marginX,
+        y,
+        size: 7,
+        font: fontRegular,
+        color: cDark,
+      });
+      y -= 10;
+    }
   }
 
   // Ensure signatures are on the current page with sufficient room, or add a dedicated sign page if full
