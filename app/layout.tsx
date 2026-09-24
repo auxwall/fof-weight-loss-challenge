@@ -11,7 +11,7 @@ const poppins = Poppins({
 
 export const metadata: Metadata = {
   title: "Gym Weight Loss Challenge — Dubai 2026",
-  description: "Official 30-day Gym Weight Loss Challenge across Dubai clubs: Al Rashidiya, Al Barsha, Abu Hail, and Al Nahda. Total prizes of 23,000 AED.",
+  description: "Official 30-day Gym Weight Loss Challenge across Dubai clubs: Al Rashidiya, Al Barsha, Abu Hail, and Al Nahda. Total prizes of 18,000 AED.",
   keywords: ["gym challenge", "weight loss", "dubai gym", "fitness challenge", "al barsha", "al rashidiya"],
 };
 

@@ -410,12 +410,12 @@ export default function StaffDashboardClient({
 
                         {/* Day-1 Weight */}
                         <td className="p-3 sm:p-3.5 text-center font-mono font-semibold text-zinc-200">
-                          {u.day1Weight !== null ? `${u.day1Weight.toFixed(1)} kg` : "—"}
+                          {u.day1Weight !== null ? `${Number(u.day1Weight).toFixed(3)} kg` : "—"}
                         </td>
 
                         {/* Final Weight */}
                         <td className="p-3 sm:p-3.5 text-center font-mono font-semibold text-zinc-200">
-                          {u.finalWeight !== null ? `${u.finalWeight.toFixed(1)} kg` : "—"}
+                          {u.finalWeight !== null ? `${Number(u.finalWeight).toFixed(3)} kg` : "—"}
                         </td>
 
                         {/* Window / Days Remaining */}

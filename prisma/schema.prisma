@@ -91,7 +91,7 @@ model WeighIn {
   user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   type            WeighInType // DAY_1 or FINAL
-  weightKg        Float
+  weightKg        Decimal     @db.Decimal(7, 3)
   branchId        String
   branch          Branch      @relation(fields: [branchId], references: [id])
   loggedByStaffId String
@@ -121,7 +121,7 @@ model Winner {
   id         String   @id @default(cuid())
   userId     String   @unique
   position   Int      // 1, 2, 3
-  kgLost     Float
+  kgLost     Decimal  @db.Decimal(7, 3)
   prizeAed   Int
   selectedAt DateTime @default(now())
 

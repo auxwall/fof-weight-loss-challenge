@@ -23,7 +23,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const weightNum = parseFloat(weightKg);
+    const weightStr = String(weightKg).trim();
+    if (!/^\d+(\.\d{3})$/.test(weightStr)) {
+      return NextResponse.json(
+        {
+          error:
+            "Weight strictly requires exactly 3 decimal places (e.g. 88.123 kg). Formats like 88, 88.2, or 88.33 are not allowed.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const weightNum = parseFloat(weightStr);
     if (isNaN(weightNum) || weightNum <= 25 || weightNum > 350) {
       return NextResponse.json(
         { error: "Please enter a valid weight in kg (between 25 and 350 kg)." },
@@ -166,7 +177,10 @@ export async function POST(req: NextRequest) {
         success: true,
         message: "Day-1 weigh-in logged successfully. 30-day challenge clock started!",
         user: updatedUser,
-        weighIn,
+        weighIn: {
+          ...weighIn,
+          weightKg: Number(weighIn.weightKg),
+        },
       });
     }
 
@@ -217,7 +231,7 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      const kgLost = parseFloat((day1Record.weightKg - weightNum).toFixed(1));
+      const kgLost = parseFloat((Number(day1Record.weightKg) - weightNum).toFixed(3));
 
       // Save scale photo proof if provided
       let scalePhotoUrl: string | null = null;
@@ -293,7 +307,7 @@ export async function POST(req: NextRequest) {
           mobile: user.mobile,
           email: user.email,
           branchName: finalWeighIn.branch.label,
-          day1WeightKg: day1Record.weightKg,
+          day1WeightKg: Number(day1Record.weightKg),
           day1Date: day1Record.createdAt,
           finalWeightKg: weightNum,
           finalDate: now,
@@ -313,7 +327,7 @@ export async function POST(req: NextRequest) {
             email: user.email,
             name: user.name,
             userId: user.id,
-            day1WeightKg: day1Record.weightKg,
+            day1WeightKg: Number(day1Record.weightKg),
             finalWeightKg: weightNum,
             kgLost: kgLost,
             pdfBytes: pdfBytes,
@@ -327,8 +341,12 @@ export async function POST(req: NextRequest) {
         success: true,
         message: "Final weigh-in successfully recorded and verified!",
         user: updatedUser,
+        weighIn: {
+          ...finalWeighIn,
+          weightKg: Number(finalWeighIn.weightKg),
+        },
         kgLost,
-        day1Weight: day1Record.weightKg,
+        day1Weight: Number(day1Record.weightKg),
         finalWeight: weightNum,
       });
     }

@@ -40,7 +40,7 @@ export default async function HomePage() {
           </span>
           <br />
           <span className="inline-block">
-            WIN UP TO <span className="text-gymRed whitespace-nowrap">15,000 AED</span>.
+            WIN UP TO <span className="text-gymRed whitespace-nowrap">10,000 AED</span>.
           </span>
         </h1>
 
@@ -55,7 +55,7 @@ export default async function HomePage() {
             <div className="flex items-center justify-center text-amber-400 mb-1">
               <Trophy className="w-4 h-4 sm:w-7 sm:h-7" />
             </div>
-            <div className="text-base sm:text-2xl font-black text-white">15,000</div>
+            <div className="text-base sm:text-2xl font-black text-white">10,000</div>
             <div className="text-[9px] sm:text-xs uppercase font-semibold text-zinc-400 tracking-tight sm:tracking-wider whitespace-nowrap mt-0.5">
               AED · 1st Place
             </div>
@@ -142,7 +142,7 @@ export default async function HomePage() {
                 <h4 className="font-bold text-white text-base">Day-1 Weigh-In</h4>
               </div>
               <p className="text-zinc-400 text-xs leading-relaxed">
-                Visit any club and present your QR code. Our team will record your official baseline weight to officially activate your 30-day challenge.
+                Visit any club with your valid <span className="text-white font-semibold">Emirates ID</span> and present your QR code. Our team will record your official baseline weight to officially activate your 30-day challenge.
               </p>
             </div>
 

@@ -20,8 +20,8 @@ export default async function AdminDashboardPage() {
   const userWeights: Record<string, { day1?: number; final?: number }> = {};
   for (const w of allWeighIns) {
     if (!userWeights[w.userId]) userWeights[w.userId] = {};
-    if (w.type === "DAY_1") userWeights[w.userId].day1 = w.weightKg;
-    if (w.type === "FINAL") userWeights[w.userId].final = w.weightKg;
+    if (w.type === "DAY_1") userWeights[w.userId].day1 = Number(w.weightKg);
+    if (w.type === "FINAL") userWeights[w.userId].final = Number(w.weightKg);
   }
 
   let totalKgLost = 0;
@@ -97,7 +97,7 @@ export default async function AdminDashboardPage() {
               <Scale className="w-4 h-4" />
             </div>
             <div className="text-2xl sm:text-3xl font-black text-gymRed">
-              {totalKgLost.toFixed(1)} <span className="text-sm font-bold">KG</span>
+              {totalKgLost.toFixed(3)} <span className="text-sm font-bold">KG</span>
             </div>
             <span className="text-[10px] text-zinc-400 mt-1 block">Across all finishers</span>
           </div>
@@ -164,7 +164,7 @@ export default async function AdminDashboardPage() {
               </div>
               <h3 className="font-bold text-sm text-white mb-1">🏆 Winner Selection</h3>
               <p className="text-xs text-zinc-400 leading-relaxed">
-                Leaderboard by kg lost, 15k/5k/3k AED ribbons, confetti celebration & download image.
+                Leaderboard by kg lost, 10k/5k/3k AED ribbons, confetti celebration & download image.
               </p>
             </div>
             <div className="flex items-center text-xs font-semibold text-gymRed mt-4 gap-1 group-hover:translate-x-1 transition-transform">

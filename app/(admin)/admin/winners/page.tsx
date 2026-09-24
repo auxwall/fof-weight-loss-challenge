@@ -31,15 +31,15 @@ export default async function AdminWinnersPage() {
 
       if (!day1 || !finalW) return null;
 
-      const kgLost = parseFloat((day1.weightKg - finalW.weightKg).toFixed(1));
+      const kgLost = parseFloat((Number(day1.weightKg) - Number(finalW.weightKg)).toFixed(3));
       return {
         userId: u.id,
         name: u.name,
         mobile: u.mobile,
         gender: u.gender,
         branchLabel: u.registeredBranch.label,
-        day1Weight: day1.weightKg,
-        finalWeight: finalW.weightKg,
+        day1Weight: Number(day1.weightKg),
+        finalWeight: Number(finalW.weightKg),
         kgLost,
       };
     })
@@ -53,7 +53,7 @@ export default async function AdminWinnersPage() {
       userId: w.userId,
       name: w.user.name,
       prizeAed: w.prizeAed,
-      kgLost: w.kgLost,
+      kgLost: Number(w.kgLost),
       branchLabel: w.user.registeredBranch.label,
     };
   }

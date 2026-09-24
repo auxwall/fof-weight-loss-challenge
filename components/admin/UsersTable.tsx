@@ -262,7 +262,7 @@ export default function UsersTable({ initialUsers, branches }: UsersTableProps) 
                       <td className="p-3.5 text-center font-mono text-zinc-200">
                         {u.day1Weight !== null ? (
                           <div className="flex flex-col items-center gap-1">
-                            <span className="font-semibold">{u.day1Weight.toFixed(1)} kg</span>
+                            <span className="font-semibold">{Number(u.day1Weight).toFixed(3)} kg</span>
                             <div className="flex items-center gap-1">
                               {u.day1PhotoUrl && (
                                 <button
@@ -272,7 +272,7 @@ export default function UsersTable({ initialUsers, branches }: UsersTableProps) 
                                       isOpen: true,
                                       url: u.day1PhotoUrl || null,
                                       title: `${u.name} · Day-1 Scale Photo`,
-                                      subtitle: `Initial Weight: ${u.day1Weight?.toFixed(1)} kg`,
+                                      subtitle: `Initial Weight: ${Number(u.day1Weight).toFixed(3)} kg`,
                                     })
                                   }
                                   className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-sans font-medium bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-colors border border-zinc-700/60"
@@ -311,7 +311,7 @@ export default function UsersTable({ initialUsers, branches }: UsersTableProps) 
                       <td className="p-3.5 text-center font-mono text-zinc-200">
                         {u.finalWeight !== null ? (
                           <div className="flex flex-col items-center gap-1">
-                            <span className="font-semibold">{u.finalWeight.toFixed(1)} kg</span>
+                            <span className="font-semibold">{Number(u.finalWeight).toFixed(3)} kg</span>
                             <div className="flex items-center gap-1">
                               {u.finalPhotoUrl && (
                                 <button
@@ -321,7 +321,7 @@ export default function UsersTable({ initialUsers, branches }: UsersTableProps) 
                                       isOpen: true,
                                       url: u.finalPhotoUrl || null,
                                       title: `${u.name} · Final Scale Photo`,
-                                      subtitle: `Final Weight: ${u.finalWeight?.toFixed(1)} kg`,
+                                      subtitle: `Final Weight: ${Number(u.finalWeight).toFixed(3)} kg`,
                                     })
                                   }
                                   className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-sans font-medium bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-colors border border-zinc-700/60"
@@ -360,7 +360,7 @@ export default function UsersTable({ initialUsers, branches }: UsersTableProps) 
                       <td className="p-3.5 text-center font-mono font-bold whitespace-nowrap">
                         {u.kgLost !== null ? (
                           <span className={u.kgLost > 0 ? "text-gymRed font-black" : "text-zinc-400"}>
-                            {u.kgLost > 0 ? `-${u.kgLost.toFixed(1)} kg` : `${u.kgLost.toFixed(1)} kg`}
+                            {u.kgLost > 0 ? `-${Number(u.kgLost).toFixed(3)} kg` : `${Number(u.kgLost).toFixed(3)} kg`}
                           </span>
                         ) : (
                           <span className="text-zinc-600">—</span>

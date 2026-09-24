@@ -1,7 +1,7 @@
 import nodemailer from "nodemailer";
 import path from "path";
 import fs from "fs";
-import { formatDubai } from "./dayjs";
+import dayjs, { formatDubai, DUBAI_TZ } from "./dayjs";
 import prisma from "./prisma";
 
 function createTransporter() {
@@ -124,13 +124,13 @@ export async function sendRegistrationEmail(params: {
                         <strong style="color: #FFFFFF;">2. Visit Any Club:</strong> Walk into any of our 6 clubs: <strong>Al Rashidiya, Al Barsha, Abu Hail, or Al Nahda</strong>.
                       </div>
                       <div style="margin-bottom: 10px;">
-                        <strong style="color: #FFFFFF;">3. Log Day-1 Starting Weight:</strong> Show this QR code to our team. They will log your official starting weight.
+                        <strong style="color: #FFFFFF;">3. Log Day-1 Starting Weight:</strong> Show this QR code to our team with your valid Emirates ID. They will log your official starting weight.
                       </div>
                       <div style="margin-bottom: 10px;">
                         <strong style="color: #FFFFFF;">4. 30-Day Clock Starts:</strong> Your official challenge clock begins on the exact date Day-1 is logged. Complete your final weigh-in within 30 days.
                       </div>
                       <div>
-                        <strong style="color: #FFFFFF;">5. Win Big:</strong> Top 3 participants with the highest absolute weight lost win <strong>15,000 AED</strong> (1st), <strong>5,000 AED</strong> (2nd), and <strong>3,000 AED</strong> (3rd)!
+                        <strong style="color: #FFFFFF;">5. Win Big:</strong> Top 3 participants with the highest absolute weight lost win <strong>10,000 AED</strong> (1st), <strong>5,000 AED</strong> (2nd), and <strong>3,000 AED</strong> (3rd)!
                       </div>
                     </td>
                   </tr>
@@ -197,6 +197,9 @@ export async function sendDay1Email(params: {
   const { email, name, userId, weightKg, branchName, day1Date, deadlineDate } = params;
   const transporter = createTransporter();
   const logoAttachment = getLogoAttachment();
+
+  const day30DateFormatted = dayjs(day1Date).tz(DUBAI_TZ).add(29, "day").format("DD MMMM YYYY");
+  const day31DateFormatted = formatDubai(deadlineDate, "DD MMMM YYYY");
 
   let effectiveRules = params.rulesText;
   if (effectiveRules === undefined) {
@@ -267,7 +270,7 @@ export async function sendDay1Email(params: {
                   <tr>
                     <td style="padding: 18px 20px;">
                       <div style="font-size: 12px; color: #9CA3AF !important; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Official Starting Weight</div>
-                      <div style="font-size: 28px; font-weight: bold; color: #FFFFFF !important; margin-top: 4px;">${weightKg.toFixed(1)} kg</div>
+                      <div style="font-size: 28px; font-weight: bold; color: #FFFFFF !important; margin-top: 4px;">${Number(weightKg).toFixed(3)} kg</div>
                       <div style="font-size: 12px; color: #6B7280 !important; margin-top: 6px;">Logged on: ${formatDubai(day1Date, "DD MMMM YYYY (hh:mm A)")}</div>
                     </td>
                   </tr>
@@ -277,12 +280,12 @@ export async function sendDay1Email(params: {
                 <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #1A1A1A; border: 1px solid rgba(236, 28, 35, 0.4); border-radius: 10px; margin: 16px 0; text-align: center;">
                   <tr>
                     <td style="padding: 18px 20px;">
-                      <div style="font-size: 12px; color: #EC1C23 !important; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">Final Weigh-In Deadline</div>
+                      <div style="font-size: 12px; color: #EC1C23 !important; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">Final Weigh-In (Day 30)</div>
                       <div style="font-size: 20px; font-weight: bold; color: #FFFFFF !important; margin-top: 4px;">
-                        ${formatDubai(deadlineDate, "DD MMMM YYYY")}
+                        ${day30DateFormatted}
                       </div>
                       <p style="font-size: 12px; color: #D1D5DB !important; margin: 8px 0 0 0; line-height: 1.5;">
-                        You must return to any club on or before ${formatDubai(deadlineDate, "DD MMMM YYYY")} for your final weigh-in. Failure to return results in automatic disqualification.
+                        You must return to any club on or before ${day31DateFormatted} for your final weigh-in. Failure to return results in automatic disqualification.
                       </p>
                     </td>
                   </tr>
@@ -335,7 +338,7 @@ export async function sendDay1Email(params: {
     await transporter.sendMail({
       from: FROM_HEADER,
       to: email,
-      subject: `⏱️ Day-1 Confirmed (${weightKg} kg) — Your 30-Day Challenge Clock Has Started!`,
+      subject: `⏱️ Day-1 Confirmed (${Number(weightKg).toFixed(3)} kg) — Your 30-Day Challenge Clock Has Started!`,
       html,
       attachments,
     });
@@ -361,7 +364,7 @@ export async function sendFinalResultEmail(params: {
   const { email, name, userId, day1WeightKg, finalWeightKg, kgLost, pdfBytes } = params;
   const transporter = createTransporter();
   const logoAttachment = getLogoAttachment();
-  const kgLostText = `${kgLost > 0 ? "-" : ""}${Math.abs(kgLost).toFixed(1)} kg`;
+  const kgLostText = `${kgLost > 0 ? "-" : ""}${Math.abs(kgLost).toFixed(3)} kg`;
 
   const html = `
     <!DOCTYPE html>
@@ -418,12 +421,12 @@ export async function sendFinalResultEmail(params: {
                   <tr>
                     <td style="padding: 14px 4px; vertical-align: middle;">
                       <div style="font-size: 10px; color: #9CA3AF !important; text-transform: uppercase; font-weight: 600; white-space: nowrap;">Day-1 Start</div>
-                      <div style="font-size: 15px; font-weight: bold; color: #FFFFFF !important; margin-top: 4px; white-space: nowrap;">${day1WeightKg.toFixed(1)}&nbsp;kg</div>
+                      <div style="font-size: 15px; font-weight: bold; color: #FFFFFF !important; margin-top: 4px; white-space: nowrap;">${Number(day1WeightKg).toFixed(3)}&nbsp;kg</div>
                     </td>
                     <td style="font-size: 14px; color: #6B7280 !important; padding: 14px 2px; vertical-align: middle;">→</td>
                     <td style="padding: 14px 4px; vertical-align: middle;">
                       <div style="font-size: 10px; color: #9CA3AF !important; text-transform: uppercase; font-weight: 600; white-space: nowrap;">Final Weigh-In</div>
-                      <div style="font-size: 15px; font-weight: bold; color: #FFFFFF !important; margin-top: 4px; white-space: nowrap;">${finalWeightKg.toFixed(1)}&nbsp;kg</div>
+                      <div style="font-size: 15px; font-weight: bold; color: #FFFFFF !important; margin-top: 4px; white-space: nowrap;">${Number(finalWeightKg).toFixed(3)}&nbsp;kg</div>
                     </td>
                     <td style="font-size: 14px; color: #6B7280 !important; padding: 14px 2px; vertical-align: middle;">=</td>
                     <td style="padding: 14px 4px; vertical-align: middle;">
@@ -444,7 +447,7 @@ export async function sendFinalResultEmail(params: {
                 </table>
 
                 <p style="color: #9CA3AF !important; font-size: 12px; margin: 0; line-height: 1.5;">
-                  Gym management will announce the 1st (15,000 AED), 2nd (5,000 AED), and 3rd (3,000 AED) winners on the official Finalize Date. Stay tuned!
+                  Gym management will announce the 1st (10,000 AED), 2nd (5,000 AED), and 3rd (3,000 AED) winners on the official Finalize Date. Stay tuned!
                 </p>
               </td>
             </tr>
@@ -488,7 +491,7 @@ export async function sendFinalResultEmail(params: {
         from: FROM_HEADER,
         to: COMPANY_CERTIFICATE_EMAIL,
         subject: `📄 Participant Certificate: ${name} (${userId}) — Lost ${kgLostText}`,
-        text: `Official signed PDF certificate of completion for participant ${name} (ID: ${userId}).\n\nStarting Weight: ${day1WeightKg.toFixed(1)} kg\nFinal Weight: ${finalWeightKg.toFixed(1)} kg\nTotal Lost: ${kgLostText}\n\nThe signed PDF certificate is attached.`,
+        text: `Official signed PDF certificate of completion for participant ${name} (ID: ${userId}).\n\nStarting Weight: ${Number(day1WeightKg).toFixed(3)} kg\nFinal Weight: ${Number(finalWeightKg).toFixed(3)} kg\nTotal Lost: ${kgLostText}\n\nThe signed PDF certificate is attached.`,
         attachments: [
           {
             filename: `WeightLossChallenge-${userId}.pdf`,
@@ -507,3 +510,160 @@ export async function sendFinalResultEmail(params: {
     return { success: false };
   }
 }
+
+/**
+ * EMAIL #4: Day 28 Reminder Email (Sent 2 days before Day 30 Final Weigh-In)
+ */
+export async function sendReminderEmail(params: {
+  email: string;
+  name: string;
+  userId: string;
+  branchName: string;
+  day1WeightKg: number;
+  day1Date: Date | string;
+  day30Date: Date | string;
+  day31Date: Date | string;
+}): Promise<{ success: boolean; mocked?: boolean }> {
+  const { email, name, userId, day1WeightKg, day1Date, day30Date, day31Date } = params;
+  const transporter = createTransporter();
+  const logoAttachment = getLogoAttachment();
+
+  const day30DateFormatted = formatDubai(day30Date, "DD MMMM YYYY");
+  const day31DateFormatted = formatDubai(day31Date, "DD MMMM YYYY");
+  const day1DateFormatted = formatDubai(day1Date, "DD MMMM YYYY");
+
+  const html = `
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Final Weigh-In Reminder</title>
+      </head>
+      <body style="margin: 0; padding: 24px 10px; background-color: #0A0A0A; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
+        <center>
+          <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 560px; margin: 0 auto; background-color: #141414; border: 1px solid #262626; border-radius: 14px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+            <!-- RED ACCENT BAR -->
+            <tr>
+              <td style="height: 6px; background-color: #EC1C23; font-size: 1px; line-height: 1px;">&nbsp;</td>
+            </tr>
+
+            <!-- HEADER -->
+            <tr>
+              <td align="center" style="padding: 26px 20px 16px 20px; text-align: center;">
+                <div style="display: block; margin: 0 auto 12px auto;">
+                  <img src="cid:gymlogo" alt="Face off Fitness" width="160" style="display: block; width: 160px; max-width: 160px; height: auto; margin: 0 auto; border: 0;" />
+                </div>
+                <h1 style="color: #FFFFFF !important; margin: 0; font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
+                  GYM WEIGHT LOSS CHALLENGE
+                </h1>
+                <div style="color: #EC1C23 !important; font-size: 12px; font-weight: 700; letter-spacing: 1.5px; margin-top: 4px; text-transform: uppercase;">
+                  Final Weigh-In Reminder (2 Days Left)
+                </div>
+              </td>
+            </tr>
+
+            <!-- BODY -->
+            <tr>
+              <td align="center" style="padding: 0 24px 24px 24px; text-align: center; color: #FFFFFF;">
+                <h2 style="color: #FFFFFF !important; margin-top: 0; font-size: 22px; font-weight: 700;">
+                  Almost at the Finish Line, <span style="color: #EC1C23 !important;">${name}</span>!
+                </h2>
+                <p style="color: #9CA3AF !important; font-size: 14px; line-height: 1.5; margin: 6px 0 18px 0;">
+                  This is a friendly reminder that you are on <strong style="color: #FFFFFF;">Day 28</strong> of your 30-day challenge. Your official Final Weigh-In window opens in exactly <strong style="color: #EC1C23;">2 days</strong>!
+                </p>
+
+                <!-- USER ID BADGE -->
+                <table role="presentation" border="0" cellpadding="0" cellspacing="0" align="center" style="margin: 0 auto 18px auto;">
+                  <tr>
+                    <td align="center" style="background-color: #1A1A1A; border: 1px dashed #EC1C23; padding: 8px 22px; border-radius: 8px; font-family: monospace, Courier, sans-serif; font-size: 14px; font-weight: bold; color: #EC1C23 !important; letter-spacing: 2px;">
+                      USER ID: ${userId}
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- FINAL WEIGH-IN TARGET CARD -->
+                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #1C1C1C; border-left: 4px solid #EC1C23; border-top: 1px solid #262626; border-right: 1px solid #262626; border-bottom: 1px solid #262626; border-radius: 10px; margin: 16px 0; text-align: left;">
+                  <tr>
+                    <td style="padding: 18px 20px;">
+                      <div style="font-size: 12px; color: #EC1C23 !important; text-transform: uppercase; letter-spacing: 0.5px; font-weight: bold;">
+                        Target Final Weigh-In Date (Day 30)
+                      </div>
+                      <div style="font-size: 24px; font-weight: bold; color: #FFFFFF !important; margin-top: 4px;">
+                        ${day30DateFormatted}
+                      </div>
+                      <div style="font-size: 12px; color: #9CA3AF !important; margin-top: 6px; line-height: 1.5;">
+                        Your final weigh-in window is open on Day 30 (${day30DateFormatted}).
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- STARTING WEIGHT REFERENCE -->
+                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #1A1A1A; border: 1px solid #262626; border-radius: 10px; margin: 16px 0; text-align: left;">
+                  <tr>
+                    <td style="padding: 14px 18px;">
+                      <div style="font-size: 11px; color: #9CA3AF !important; text-transform: uppercase; letter-spacing: 0.5px;">Starting Weight Recorded</div>
+                      <div style="font-size: 18px; font-weight: bold; color: #FFFFFF !important; margin-top: 2px;">
+                        ${Number(day1WeightKg).toFixed(3)} kg <span style="font-size: 12px; font-weight: normal; color: #6B7280 !important;">on ${day1DateFormatted}</span>
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- INSTRUCTIONS CARD -->
+                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #181818; border: 1px solid #2A2A2A; border-radius: 10px; margin: 16px 0 20px 0; text-align: left;">
+                  <tr>
+                    <td style="padding: 16px 18px;">
+                      <div style="font-size: 12px; color: #FFFFFF !important; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+                        📍 What You Need To Do:
+                      </div>
+                      <div style="font-size: 13px; color: #D1D5DB !important; line-height: 1.6;">
+                        1. Visit any Face Off Fitness club on <strong>${day30DateFormatted}</strong>.<br>
+                        2. Present your User ID (<strong>${userId}</strong>) or QR Pass to our front desk staff.<br>
+                        3. Step onto the official scale for your verified final weigh-in & certificate!
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+
+                <p style="color: #EF4444 !important; font-size: 12px; margin: 0; line-height: 1.5; font-weight: 500;">
+                  ⚠️ Please remember: Participants who do not complete their final weigh-in on or before ${day31DateFormatted} will be automatically disqualified from the challenge.
+                </p>
+              </td>
+            </tr>
+
+            <!-- FOOTER -->
+            <tr>
+              <td align="center" style="font-size: 11px; color: #6B7280 !important; padding: 14px; background-color: #111111; border-top: 1px solid #222222; text-align: center;">
+                Face off Fitness · Gym Weight Loss Challenge · Dubai, UAE
+              </td>
+            </tr>
+          </table>
+        </center>
+      </body>
+    </html>
+  `;
+
+  if (!transporter) {
+    return { success: true, mocked: true };
+  }
+
+  try {
+    const attachments: any[] = [];
+    if (logoAttachment) attachments.push(logoAttachment);
+
+    await transporter.sendMail({
+      from: FROM_HEADER,
+      to: email,
+      subject: `⏰ Reminder: Your Final Weigh-In (Day 30) is in 2 Days! — Face Off Fitness`,
+      html,
+      attachments,
+    });
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to send Reminder email:", error);
+    return { success: false };
+  }
+}
+

@@ -8,7 +8,7 @@ import SignaturePad from "@/components/staff/SignaturePad";
 import ScalePhotoCapture from "@/components/staff/ScalePhotoCapture";
 import PhotoProofModal from "@/components/staff/PhotoProofModal";
 import { maskEmiratesId } from "@/lib/mask";
-import { formatDubai, formatDateOnlyDubai, getFinalWeighInWindow } from "@/lib/dayjs";
+import dayjs, { formatDubai, formatDateOnlyDubai, getFinalWeighInWindow, DUBAI_TZ } from "@/lib/dayjs";
 import { ArrowLeft, Eye, EyeOff, Scale, Clock, CheckCircle2, AlertTriangle, FileCheck, Loader2, Award, Camera, PenLine } from "lucide-react";
 
 interface Branch { id: string; name: string; label: string; }
@@ -46,7 +46,7 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
   const parsedWeight = parseFloat(weightInput);
   const liveKgLost =
     day1WeighIn && !isNaN(parsedWeight)
-      ? parseFloat((day1WeighIn.weightKg - parsedWeight).toFixed(1))
+      ? parseFloat((Number(day1WeighIn.weightKg) - parsedWeight).toFixed(3))
       : null;
 
   // Handle Day-1 Submission
@@ -54,6 +54,12 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
     e.preventDefault();
     setError(null);
     setSuccessMessage(null);
+
+    const cleanWeight = weightInput.trim();
+    if (!/^\d+(\.\d{3})$/.test(cleanWeight)) {
+      setError("Starting weight strictly requires exactly 3 decimal places (e.g. 88.123 kg). Formats like 88, 88.2, or 88.33 are not allowed.");
+      return;
+    }
 
     if (!scalePhotoDay1) {
       setError("Please capture or upload a scale photo proof for Day-1.");
@@ -79,7 +85,7 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
         body: JSON.stringify({
           userId: user.id,
           type: "DAY_1",
-          weightKg: parseFloat(weightInput),
+          weightKg: cleanWeight,
           branchId: selectedBranchId,
           scalePhoto: scalePhotoDay1,
           emiratesIdPhoto: emiratesIdPhotoDay1,
@@ -120,6 +126,12 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
     setError(null);
     setSuccessMessage(null);
 
+    const cleanWeight = weightInput.trim();
+    if (!/^\d+(\.\d{3})$/.test(cleanWeight)) {
+      setError("Final weight strictly requires exactly 3 decimal places (e.g. 79.123 kg). Formats like 88, 88.2, or 88.33 are not allowed.");
+      return;
+    }
+
     if (finalWindow && !finalWindow.isEligible) {
       setError(finalWindow.message);
       return;
@@ -144,7 +156,7 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
         body: JSON.stringify({
           userId: user.id,
           type: "FINAL",
-          weightKg: parseFloat(weightInput),
+          weightKg: cleanWeight,
           branchId: selectedBranchId,
           scalePhoto: scalePhotoFinal,
           signatureDataUrl: signatureData,
@@ -298,7 +310,7 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
               <div className="flex justify-between items-center py-1 border-b border-zinc-800/80 text-xs">
                 <span className="text-zinc-400">Recorded Weight:</span>
                 <span className="font-mono font-black text-white text-base">
-                  {day1WeighIn ? `${day1WeighIn.weightKg.toFixed(1)} kg` : "—"}
+                  {day1WeighIn ? `${Number(day1WeighIn.weightKg).toFixed(3)} kg` : "—"}
                 </span>
               </div>
               <div className="flex justify-between items-center py-1 border-b border-zinc-800/80 text-xs">
@@ -320,7 +332,9 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
               <div className="flex justify-between items-center py-1 text-xs">
                 <span className="text-zinc-400">Return Deadline:</span>
                 <span className="font-semibold text-zinc-200">
-                  {formatDubai(user.deadlineDate, "DD MMM YYYY (hh:mm A)")}
+                  {user.day1Date
+                    ? dayjs(user.day1Date).tz(DUBAI_TZ).add(29, "day").format("DD MMM YYYY")
+                    : "—"}
                 </span>
               </div>
             </div>
@@ -355,20 +369,22 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
                 <div className="relative">
                   <Scale className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
                   <input
-                    type="number"
-                    step="0.1"
-                    min="30"
-                    max="300"
+                    type="text"
+                    inputMode="decimal"
+                    pattern="^\d+(\.\d{3})$"
                     required
                     value={weightInput}
                     onChange={(e) => setWeightInput(e.target.value)}
-                    placeholder="e.g. 88.5"
+                    placeholder="e.g. 88.123"
                     className="w-full bg-zinc-900 border border-zinc-700/80 rounded-xl pl-10 pr-12 py-3 text-lg font-mono font-bold text-white placeholder-zinc-500 focus:outline-none focus:border-gymRed"
                   />
                   <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-400 uppercase">
                     KG
                   </span>
                 </div>
+                <span className="text-[11px] text-zinc-400 mt-1 block">
+                  Strictly 3 decimal places required (e.g. 88.123).
+                </span>
               </div>
 
               <div>
@@ -412,9 +428,15 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
                   onClear={() => setSignatureDataDay1(null)}
                 />
                 {signatureDataDay1 && (
-                  <div className="mt-2 text-center text-[11px] text-emerald-400 font-semibold flex items-center justify-center gap-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Signature locked in & ready</span>
+                  <div className="mt-2.5 flex flex-col items-center gap-1.5">
+                    <div className="p-1 bg-white rounded-lg border border-zinc-300 shadow-sm max-w-[220px]">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={signatureDataDay1} alt="Day-1 Signature" className="h-10 w-auto object-contain mx-auto" />
+                    </div>
+                    <div className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>Signature locked in & ready</span>
+                    </div>
                   </div>
                 )}
               </div>
@@ -461,7 +483,7 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
                 <div>
                   <span className="text-[10px] text-zinc-400 uppercase block">Day-1 Start Weight</span>
                   <span className="text-base font-black text-white font-mono">
-                    {day1WeighIn ? `${day1WeighIn.weightKg.toFixed(1)} kg` : "—"}
+                    {day1WeighIn ? `${Number(day1WeighIn.weightKg).toFixed(3)} kg` : "—"}
                   </span>
                   <span className="text-[10px] text-zinc-400 block">
                     {formatDubai(user.day1Date, "DD MMM YYYY")}
@@ -490,7 +512,7 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
                       setModalImage({
                         url: day1WeighIn.photoUrl!,
                         title: "Day-1 Scale Photo",
-                        subtitle: `${day1WeighIn.weightKg} kg · ${formatDubai(user.day1Date)}`,
+                        subtitle: `${Number(day1WeighIn.weightKg).toFixed(3)} kg · ${formatDubai(user.day1Date)}`,
                       })
                     }
                     className="w-full py-1.5 px-2 rounded-lg bg-zinc-800/80 hover:bg-zinc-800 border border-zinc-700/60 text-zinc-300 text-[11px] font-semibold flex items-center justify-center gap-1.5 transition-colors"
@@ -575,20 +597,22 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
                 <div className="relative">
                   <Scale className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
                   <input
-                    type="number"
-                    step="0.1"
-                    min="30"
-                    max="300"
+                    type="text"
+                    inputMode="decimal"
+                    pattern="^\d+(\.\d{3})$"
                     required
                     value={weightInput}
                     onChange={(e) => setWeightInput(e.target.value)}
-                    placeholder="e.g. 79.2"
+                    placeholder="e.g. 79.123"
                     className="w-full bg-zinc-900 border border-zinc-700/80 rounded-xl pl-10 pr-12 py-3 text-lg font-mono font-bold text-white placeholder-zinc-500 focus:outline-none focus:border-gymRed"
                   />
                   <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-400 uppercase">
                     KG
                   </span>
                 </div>
+                <span className="text-[11px] text-zinc-400 mt-1 block">
+                  Strictly 3 decimal places required (e.g. 79.123).
+                </span>
               </div>
 
               <div>
@@ -617,7 +641,7 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
                       liveKgLost > 0 ? "text-gymRed" : "text-zinc-300"
                     }`}
                   >
-                    {liveKgLost > 0 ? `-${liveKgLost.toFixed(1)} kg` : `${liveKgLost.toFixed(1)} kg`}
+                    {liveKgLost > 0 ? `-${liveKgLost.toFixed(3)} kg` : `${liveKgLost.toFixed(3)} kg`}
                   </span>
                 </div>
               )}
@@ -639,9 +663,15 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
                   onClear={() => setSignatureData(null)}
                 />
                 {signatureData && (
-                  <div className="mt-2 text-center text-[11px] text-emerald-400 font-semibold flex items-center justify-center gap-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Signature locked in & ready</span>
+                  <div className="mt-2.5 flex flex-col items-center gap-1.5">
+                    <div className="p-1 bg-white rounded-lg border border-zinc-300 shadow-sm max-w-[220px]">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={signatureData} alt="Final Signature" className="h-10 w-auto object-contain mx-auto" />
+                    </div>
+                    <div className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>Signature locked in & ready</span>
+                    </div>
                   </div>
                 )}
               </div>
@@ -692,7 +722,7 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
               <div>
                 <span className="text-[10px] text-zinc-400 uppercase block">Day-1</span>
                 <span className="font-mono text-sm font-bold text-white block">
-                  {day1WeighIn ? `${day1WeighIn.weightKg.toFixed(1)} kg` : "—"}
+                  {day1WeighIn ? `${Number(day1WeighIn.weightKg).toFixed(3)} kg` : "—"}
                 </span>
                 {day1WeighIn && (
                   <span className="text-[9px] text-zinc-500 block leading-tight mt-0.5">
@@ -705,7 +735,7 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
               <div>
                 <span className="text-[10px] text-zinc-400 uppercase block">Final</span>
                 <span className="font-mono text-sm font-bold text-white block">
-                  {finalWeighIn ? `${finalWeighIn.weightKg.toFixed(1)} kg` : "—"}
+                  {finalWeighIn ? `${Number(finalWeighIn.weightKg).toFixed(3)} kg` : "—"}
                 </span>
                 {finalWeighIn && (
                   <span className="text-[9px] text-zinc-500 block leading-tight mt-0.5">
@@ -719,7 +749,7 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
                 <span className="text-[10px] text-gymRed uppercase font-bold block">Lost</span>
                 <span className="font-mono text-sm font-black text-gymRed block">
                   {day1WeighIn && finalWeighIn
-                    ? `-${(day1WeighIn.weightKg - finalWeighIn.weightKg).toFixed(1)} kg`
+                    ? `-${(Number(day1WeighIn.weightKg) - Number(finalWeighIn.weightKg)).toFixed(3)} kg`
                     : "—"}
                 </span>
                 <span className="text-[9px] text-zinc-500 block mt-0.5">
@@ -741,7 +771,7 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
                       setModalImage({
                         url: day1WeighIn.photoUrl!,
                         title: "Day-1 Scale Photo",
-                        subtitle: `${day1WeighIn.weightKg} kg · ${formatDubai(day1WeighIn.createdAt, "DD MMM YYYY, hh:mm A")}`,
+                        subtitle: `${Number(day1WeighIn.weightKg).toFixed(3)} kg · ${formatDubai(day1WeighIn.createdAt, "DD MMM YYYY, hh:mm A")}`,
                       })
                     }
                     className="p-2.5 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-left transition-colors flex items-center gap-2"
@@ -790,7 +820,7 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
                       setModalImage({
                         url: finalWeighIn.photoUrl!,
                         title: "Final Scale Photo",
-                        subtitle: `${finalWeighIn.weightKg} kg · ${formatDubai(finalWeighIn.createdAt, "DD MMM YYYY, hh:mm A")}`,
+                        subtitle: `${Number(finalWeighIn.weightKg).toFixed(3)} kg · ${formatDubai(finalWeighIn.createdAt, "DD MMM YYYY, hh:mm A")}`,
                       })
                     }
                     className="p-2.5 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-left transition-colors flex items-center gap-2"

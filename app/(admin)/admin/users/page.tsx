@@ -22,7 +22,7 @@ export default async function AdminUsersPage() {
     const day1 = u.weighIns.find((w) => w.type === "DAY_1");
     const finalW = u.weighIns.find((w) => w.type === "FINAL");
     const kgLost =
-      day1 && finalW ? parseFloat((day1.weightKg - finalW.weightKg).toFixed(1)) : null;
+      day1 && finalW ? parseFloat((Number(day1.weightKg) - Number(finalW.weightKg)).toFixed(3)) : null;
 
     const startIso = u.day1Date ? u.day1Date.toISOString() : null;
 
@@ -39,11 +39,11 @@ export default async function AdminUsersPage() {
       branchLabel: u.registeredBranch.label,
       status: currentStatus,
       day1Date: startIso,
-      day1Weight: day1 ? day1.weightKg : null,
+      day1Weight: day1 ? Number(day1.weightKg) : null,
       day1PhotoUrl: day1?.photoUrl || null,
       day1SignatureUrl: day1?.signatureUrl || null,
       finalDate: finalW ? finalW.createdAt.toISOString() : null,
-      finalWeight: finalW ? finalW.weightKg : null,
+      finalWeight: finalW ? Number(finalW.weightKg) : null,
       finalPhotoUrl: finalW?.photoUrl || null,
       finalSignatureUrl: finalW?.signatureUrl || null,
       kgLost,
