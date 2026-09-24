@@ -1,4 +1,4 @@
-import { PrismaClient, StaffRole } from "@prisma/client";
+import { PrismaClient, StaffRole, BranchName } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
@@ -7,13 +7,13 @@ async function main() {
   console.log("🌱 Starting seed...");
 
   // 1. Seed Branches
-  const branches = [
-    { name: "AL_HAMRIYA_MIX", label: "Al Hamriya, Deira, Dubai (Mix Gym)", address: "Deira, Dubai" },
-    { name: "AL_HAMRIYA_LADIES", label: "Al Hamriya, Deira, Dubai (Ladies Gym)", address: "Deira, Dubai" },
-    { name: "AL_RASHIDIYA_MIX", label: "Al Rashidiya, Dubai (Mix Gym)", address: "Rashidiya, Dubai" },
-    { name: "AL_RASHIDIYA_LADIES", label: "Al Rashidiya, Dubai (Ladies Gym)", address: "Rashidiya, Dubai" },
-    { name: "AL_NAHDA_2", label: "Al Nahda 2, Dubai", address: "Al Nahda 2, Dubai" },
-    { name: "AL_BARSHA", label: "Al Barsha, Tecom, Internet city", address: "Barsha Heights (Tecom), Dubai" },
+  const branches: Array<{ name: BranchName; label: string; address: string }> = [
+    { name: BranchName.AL_HAMRIYA_MIX, label: "Al Hamriya, Deira, Dubai (Mix Gym)", address: "Deira, Dubai" },
+    { name: BranchName.AL_HAMRIYA_LADIES, label: "Al Hamriya, Deira, Dubai (Ladies Gym)", address: "Deira, Dubai" },
+    { name: BranchName.AL_RASHIDIYA_MIX, label: "Al Rashidiya, Dubai (Mix Gym)", address: "Rashidiya, Dubai" },
+    { name: BranchName.AL_RASHIDIYA_LADIES, label: "Al Rashidiya, Dubai (Ladies Gym)", address: "Rashidiya, Dubai" },
+    { name: BranchName.AL_NAHDA_2, label: "Al Nahda 2, Dubai", address: "Al Nahda 2, Dubai" },
+    { name: BranchName.AL_BARSHA, label: "Al Barsha, Tecom, Internet city", address: "Barsha Heights (Tecom), Dubai" },
   ];
 
   const branchRecords: Record<string, string> = {};
