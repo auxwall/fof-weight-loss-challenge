@@ -1,39 +1,10 @@
 import { NextRequest } from "next/server";
+import { registerSSEClient } from "@/lib/sse";
 
 export const dynamic = "force-dynamic";
 
-// Global in-memory broadcast bus on globalThis so all API routes and webpack/turbo bundles share the exact same client list
-type Client = {
-  id: number;
-  send: (data: string) => void;
-};
-
-const globalForSSE = globalThis as unknown as {
-  sseClients?: Client[];
-  nextClientId?: number;
-};
-
-if (!globalForSSE.sseClients) {
-  globalForSSE.sseClients = [];
-}
-if (!globalForSSE.nextClientId) {
-  globalForSSE.nextClientId = 1;
-}
-
-export function broadcastWinnersUpdate(payload?: any) {
-  const clients = globalForSSE.sseClients || [];
-  const message = JSON.stringify(payload || { timestamp: Date.now(), reload: true });
-  const eventString = `data: ${message}\n\n`;
-  for (const client of clients) {
-    try {
-      client.send(eventString);
-    } catch {}
-  }
-}
-
 export async function GET(req: NextRequest) {
-  let clientId = (globalForSSE.nextClientId || 1);
-  globalForSSE.nextClientId = clientId + 1;
+  let unregisterClient: (() => void) | null = null;
 
   const stream = new ReadableStream({
     start(controller) {
@@ -43,12 +14,11 @@ export async function GET(req: NextRequest) {
         } catch {}
       };
 
-      // Register client
-      if (!globalForSSE.sseClients) globalForSSE.sseClients = [];
-      globalForSSE.sseClients.push({ id: clientId, send });
+      const client = registerSSEClient(send);
+      unregisterClient = client.unregister;
 
       // Send initial connect ping
-      send(`data: ${JSON.stringify({ type: "CONNECTED", clientId })}\n\n`);
+      send(`data: ${JSON.stringify({ type: "CONNECTED", clientId: client.id })}\n\n`);
 
       // Heartbeat every 20 seconds to keep connection alive indefinitely
       const heartbeat = setInterval(() => {
@@ -57,18 +27,14 @@ export async function GET(req: NextRequest) {
 
       req.signal.addEventListener("abort", () => {
         clearInterval(heartbeat);
-        if (globalForSSE.sseClients) {
-          globalForSSE.sseClients = globalForSSE.sseClients.filter((c) => c.id !== clientId);
-        }
+        if (unregisterClient) unregisterClient();
         try {
           controller.close();
         } catch {}
       });
     },
     cancel() {
-      if (globalForSSE.sseClients) {
-        globalForSSE.sseClients = globalForSSE.sseClients.filter((c) => c.id !== clientId);
-      }
+      if (unregisterClient) unregisterClient();
     },
   });
 

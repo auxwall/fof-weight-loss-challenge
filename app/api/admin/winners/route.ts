@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { nowDubai } from "@/lib/dayjs";
 import dayjs from "dayjs";
-import { broadcastWinnersUpdate } from "@/app/api/public/winners/stream/route";
+import { broadcastWinnersUpdate } from "@/lib/sse";
 
 export async function GET() {
   try {
