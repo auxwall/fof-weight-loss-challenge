@@ -359,8 +359,12 @@ export default function UsersTable({ initialUsers, branches }: UsersTableProps) 
                       {/* Kg Lost */}
                       <td className="p-3.5 text-center font-mono font-bold whitespace-nowrap">
                         {u.kgLost !== null ? (
-                          <span className={u.kgLost > 0 ? "text-gymRed font-black" : "text-zinc-400"}>
-                            {u.kgLost > 0 ? `-${Number(u.kgLost).toFixed(3)} kg` : `${Number(u.kgLost).toFixed(3)} kg`}
+                          <span className={u.kgLost > 0 ? "text-emerald-400 font-black" : u.kgLost < 0 ? "text-red-400 font-black" : "text-zinc-400"}>
+                            {u.kgLost > 0
+                              ? `-${Number(u.kgLost).toFixed(3)} kg`
+                              : u.kgLost < 0
+                              ? `+${Math.abs(Number(u.kgLost)).toFixed(3)} kg`
+                              : "0.000 kg"}
                           </span>
                         ) : (
                           <span className="text-zinc-600">—</span>

@@ -42,7 +42,7 @@ export default async function AdminDashboardPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-black uppercase text-white tracking-tight">CHALLENGE OVERVIEW</h1>
-            <p className="text-xs text-zinc-400 mt-1">Real-time monitoring across Dubai clubs: Al Rashidiya, Al Barsha, Abu Hail, Al Nahda.</p>
+            <p className="text-xs text-zinc-400 mt-1">Real-time monitoring across 6 Dubai clubs.</p>
           </div>
 
           <div className="flex items-center gap-2.5">

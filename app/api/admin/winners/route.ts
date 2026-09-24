@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { nowDubai } from "@/lib/dayjs";
 import dayjs from "dayjs";
+import { broadcastWinnersUpdate } from "@/app/api/public/winners/stream/route";
 
 export async function GET() {
   try {
@@ -141,6 +142,13 @@ export async function POST(req: NextRequest) {
         },
       });
       results.push(winnerRecord);
+    }
+
+    // Trigger instant real-time live push to TV displays
+    try {
+      broadcastWinnersUpdate({ action: "WINNERS_UPDATED", timestamp: Date.now() });
+    } catch (e) {
+      console.error("Failed to broadcast winners update:", e);
     }
 
     return NextResponse.json({ success: true, winners: results });

@@ -1,4 +1,4 @@
-import { PrismaClient, BranchName, StaffRole } from "@prisma/client";
+import { PrismaClient, StaffRole } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
@@ -8,10 +8,12 @@ async function main() {
 
   // 1. Seed Branches
   const branches = [
-    { name: BranchName.AL_BARSHA, label: "Al Barsha", address: "Barsha Heights (Tecom)" },
-    { name: BranchName.AL_RASHIDIYA, label: "Al Rashidiya", address: "Rashidiya Dubai" },
-    { name: BranchName.ABU_HAIL, label: "Al-Hamriya", address: "Deira Dubai" },
-    { name: BranchName.AL_NAHDA, label: "Al Nahda", address: "Al Nahda-2 Dubai" },
+    { name: "AL_HAMRIYA_MIX", label: "Al Hamriya, Deira, Dubai (Mix Gym)", address: "Deira, Dubai" },
+    { name: "AL_HAMRIYA_LADIES", label: "Al Hamriya, Deira, Dubai (Ladies Gym)", address: "Deira, Dubai" },
+    { name: "AL_RASHIDIYA_MIX", label: "Al Rashidiya, Dubai (Mix Gym)", address: "Rashidiya, Dubai" },
+    { name: "AL_RASHIDIYA_LADIES", label: "Al Rashidiya, Dubai (Ladies Gym)", address: "Rashidiya, Dubai" },
+    { name: "AL_NAHDA_2", label: "Al Nahda 2, Dubai", address: "Al Nahda 2, Dubai" },
+    { name: "AL_BARSHA", label: "Al Barsha, Tecom, Internet city", address: "Barsha Heights (Tecom), Dubai" },
   ];
 
   const branchRecords: Record<string, string> = {};

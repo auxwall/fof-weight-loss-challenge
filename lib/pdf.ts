@@ -255,3 +255,481 @@ export async function generateChallengePdf(data: ChallengePdfData): Promise<Uint
 
   return pdfDoc.save();
 }
+
+// ---------------------------------------------------------------------------
+// Day-1 Terms & Conditions Agreement PDF (A4 Portrait)
+// ---------------------------------------------------------------------------
+export interface TermsAgreementPdfData {
+  userName: string;
+  userId: string;
+  emiratesId: string;
+  mobile: string;
+  email: string;
+  branchName: string;
+  day1WeightKg: number;
+  day1Date: Date | string;
+  deadlineDate: Date | string;
+  signatureDataUrl?: string | null;
+  staffName?: string | null;
+  rulesText?: string | null;
+  termsText?: string | null;
+}
+
+export async function generateTermsAgreementPdf(data: TermsAgreementPdfData): Promise<Uint8Array> {
+  const pdfDoc = await PDFDocument.create();
+  // A4 Portrait dimensions: 595.28 x 841.89 pt
+  const PAGE_W = 595.28;
+  const PAGE_H = 841.89;
+  const marginX = 40;
+  const contentWidth = PAGE_W - marginX * 2; // 515.28 pt
+
+  const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const fontItalic = await pdfDoc.embedFont(StandardFonts.HelveticaOblique);
+
+  const cRed = rgb(0.83, 0.11, 0.14); // #D32F2F / #EC1C23
+  const cDark = rgb(0.12, 0.12, 0.12);
+  const cGray = rgb(0.4, 0.4, 0.4);
+  const cLightGray = rgb(0.9, 0.9, 0.9);
+  const cBoxBg = rgb(0.97, 0.97, 0.97);
+
+  // Helper for multi-line text wrapping
+  const wrapParagraph = (text: string, maxWidth: number, fontSize: number, font: PDFFont): string[] => {
+    const lines: string[] = [];
+    const rawParagraphs = text.split("\n");
+    for (const rawP of rawParagraphs) {
+      if (!rawP.trim()) {
+        lines.push("");
+        continue;
+      }
+      const words = rawP.split(/\s+/);
+      let currentLine = "";
+      for (const word of words) {
+        const testLine = currentLine ? `${currentLine} ${word}` : word;
+        if (font.widthOfTextAtSize(testLine, fontSize) > maxWidth && currentLine) {
+          lines.push(currentLine);
+          currentLine = word;
+        } else {
+          currentLine = testLine;
+        }
+      }
+      if (currentLine) lines.push(currentLine);
+    }
+    return lines;
+  };
+
+  // Default challenge rules if not set in DB
+  const defaultRules = [
+    "1. This is an official 30-day weight loss challenge starting from your Day-1 weigh-in at any Face Off Fitness club.",
+    "2. All participants must return to any Face Off Fitness club on Day 30 / Day 31 for their official final weigh-in.",
+    "3. Failure to return on or before Day 31 results in automatic disqualification.",
+    "4. Official starting and final weigh-ins must be conducted under direct staff supervision with digital scale display, Emirates ID, and person on scale photo proofs logged.",
+    "5. Winners are determined strictly by total verified kilograms lost (Day-1 Weight minus Final Weight).",
+    "6. Cash Prize Pool of 18,000 AED: 1st Place (10,000 AED), 2nd Place (5,000 AED), 3rd Place (3,000 AED).",
+    "7. Management's decision on final results, rankings, and prize distribution is final and binding.",
+  ].join("\n");
+
+  // Default legal terms & conditions if not set in DB
+  const defaultTerms = [
+    "1. Participation Eligibility: The participant confirms they are 18 years of age or older, in sound medical and physical health, and under no medical restriction that prohibits participation in weight loss or exercise activities.",
+    "2. Official Weigh-In Protocols: The participant agrees to step on the certified club scale and permit authorized staff to take and store scale display photos, participant on scale photos, and Emirates ID verification photos for authentic auditing.",
+    "3. Voluntary Undertaking & Health Disclaimer: The participant acknowledges that weight loss routines involve dietary adjustments and physical exertion undertaken voluntarily at their own discretion. Face Off Fitness and its management are held harmless from any personal illness, fatigue, or health complications resulting from extreme or unsafe self-directed regimens.",
+    "4. Disqualification Conditions: Any evidence of tampering with weight readings, deceptive attire/objects, deliberate dehydration/unhealthy practices, or failure to perform final weigh-in within the specified window shall lead to immediate disqualification without right of appeal.",
+    "5. Marketing & Media Release: The participant grants Face Off Fitness the right to publish winner announcements, names, and leaderboard rankings across gym displays, social media channels, and television screens for promotional purposes.",
+    "6. Digital Signature & Legal Enforceability: The participant confirms that their digital signature captured on the registration terminal constitutes an authentic, binding legal signature confirming full acceptance of these Terms, Conditions, and Challenge Rules.",
+  ].join("\n");
+
+  const rulesText = (data.rulesText && data.rulesText.trim()) || defaultRules;
+  const termsText = (data.termsText && data.termsText.trim()) || defaultTerms;
+
+  let page = pdfDoc.addPage([PAGE_W, PAGE_H]);
+  let y = PAGE_H - 36;
+
+  // Header drawing function
+  const drawPageHeader = (pageNum: number) => {
+    // Red Accent Bar
+    page.drawRectangle({
+      x: 0,
+      y: PAGE_H - 6,
+      width: PAGE_W,
+      height: 6,
+      color: cRed,
+    });
+
+    const logoPath = path.join(process.cwd(), "public", "logo.png");
+    if (fs.existsSync(logoPath)) {
+      try {
+        const logoBytes = fs.readFileSync(logoPath);
+        const logoImage = pdfDoc.embedPng(logoBytes);
+        // Synchronous embed not allowed, so logo already embedded or drawn
+      } catch {}
+    }
+
+    if (pageNum === 1) {
+      // First page title
+      const titleText = "TERMS & CONDITIONS & OFFICIAL RULES";
+      const titleW = fontBold.widthOfTextAtSize(titleText, 12);
+      page.drawText(titleText, {
+        x: PAGE_W - marginX - titleW,
+        y: y - 10,
+        size: 12,
+        font: fontBold,
+        color: cDark,
+      });
+
+      const subTitle = "Face Off Fitness · 30-Day Weight Loss Challenge";
+      const subTitleW = fontRegular.widthOfTextAtSize(subTitle, 8.5);
+      page.drawText(subTitle, {
+        x: PAGE_W - marginX - subTitleW,
+        y: y - 22,
+        size: 8.5,
+        font: fontRegular,
+        color: cRed,
+      });
+
+      const refText = `User ID: ${data.userId} · Date: ${formatDubai(data.day1Date, "DD MMM YYYY")}`;
+      const refW = fontRegular.widthOfTextAtSize(refText, 8);
+      page.drawText(refText, {
+        x: PAGE_W - marginX - refW,
+        y: y - 33,
+        size: 8,
+        font: fontRegular,
+        color: cGray,
+      });
+    } else {
+      // Header for continuation page
+      page.drawText("TERMS & CONDITIONS & OFFICIAL RULES (CONTINUED)", {
+        x: marginX,
+        y: PAGE_H - 26,
+        size: 9.5,
+        font: fontBold,
+        color: cDark,
+      });
+      const pageInfo = `User ID: ${data.userId} · Page ${pageNum}`;
+      const pageInfoW = fontRegular.widthOfTextAtSize(pageInfo, 8);
+      page.drawText(pageInfo, {
+        x: PAGE_W - marginX - pageInfoW,
+        y: PAGE_H - 26,
+        size: 8,
+        font: fontRegular,
+        color: cGray,
+      });
+      page.drawLine({
+        start: { x: marginX, y: PAGE_H - 34 },
+        end: { x: PAGE_W - marginX, y: PAGE_H - 34 },
+        thickness: 0.75,
+        color: cLightGray,
+      });
+    }
+  };
+
+  // Embed logo for page 1
+  const logoPath = path.join(process.cwd(), "public", "logo.png");
+  if (fs.existsSync(logoPath)) {
+    try {
+      const logoBytes = fs.readFileSync(logoPath);
+      const logoImage = await pdfDoc.embedPng(logoBytes);
+      const logoW = 105;
+      const logoH = (logoW / logoImage.width) * logoImage.height;
+      page.drawImage(logoImage, {
+        x: marginX,
+        y: y - logoH,
+        width: logoW,
+        height: logoH,
+      });
+    } catch {
+      page.drawText("FACE OFF FITNESS", { x: marginX, y: y - 16, size: 14, font: fontBold, color: cRed });
+    }
+  }
+
+  drawPageHeader(1);
+  y -= 48;
+
+  // Thin top separator
+  page.drawLine({
+    start: { x: marginX, y },
+    end: { x: PAGE_W - marginX, y },
+    thickness: 1,
+    color: cLightGray,
+  });
+
+  y -= 12;
+
+  // 1. Participant & Day-1 Details Summary Box
+  const boxHeight = 66;
+  page.drawRectangle({
+    x: marginX,
+    y: y - boxHeight,
+    width: contentWidth,
+    height: boxHeight,
+    color: cBoxBg,
+    borderColor: cLightGray,
+    borderWidth: 1,
+  });
+
+  const col1X = marginX + 12;
+  const col2X = marginX + 180;
+  const col3X = marginX + 355;
+  const row1Y = y - 16;
+  const row2Y = y - 33;
+  const row3Y = y - 50;
+
+  // Row 1
+  page.drawText("Participant Name:", { x: col1X, y: row1Y, size: 7.5, font: fontRegular, color: cGray });
+  page.drawText(data.userName, { x: col1X + 75, y: row1Y, size: 7.5, font: fontBold, color: cDark });
+
+  page.drawText("Emirates ID:", { x: col2X, y: row1Y, size: 7.5, font: fontRegular, color: cGray });
+  page.drawText(data.emiratesId, { x: col2X + 54, y: row1Y, size: 7.5, font: fontBold, color: cDark });
+
+  page.drawText("Starting Weight:", { x: col3X, y: row1Y, size: 7.5, font: fontRegular, color: cGray });
+  page.drawText(`${Number(data.day1WeightKg).toFixed(3)} kg`, { x: col3X + 68, y: row1Y, size: 8.5, font: fontBold, color: cRed });
+
+  // Row 2
+  page.drawText("Mobile / Phone:", { x: col1X, y: row2Y, size: 7.5, font: fontRegular, color: cGray });
+  page.drawText(data.mobile, { x: col1X + 75, y: row2Y, size: 7.5, font: fontRegular, color: cDark });
+
+  page.drawText("Email Address:", { x: col2X, y: row2Y, size: 7.5, font: fontRegular, color: cGray });
+  page.drawText(data.email, { x: col2X + 54, y: row2Y, size: 7.5, font: fontRegular, color: cDark });
+
+  page.drawText("Day-1 Date:", { x: col3X, y: row2Y, size: 7.5, font: fontRegular, color: cGray });
+  page.drawText(formatDubai(data.day1Date, "DD MMM YYYY"), { x: col3X + 68, y: row2Y, size: 7.5, font: fontBold, color: cDark });
+
+  // Row 3
+  page.drawText("Weigh-In Club:", { x: col1X, y: row3Y, size: 7.5, font: fontRegular, color: cGray });
+  page.drawText(data.branchName, { x: col1X + 75, y: row3Y, size: 7.5, font: fontRegular, color: cDark });
+
+  page.drawText("Logged By Staff:", { x: col2X, y: row3Y, size: 7.5, font: fontRegular, color: cGray });
+  page.drawText(data.staffName || "Authorized Staff", { x: col2X + 68, y: row3Y, size: 7.5, font: fontRegular, color: cDark });
+
+  page.drawText("Final Window:", { x: col3X, y: row3Y, size: 7.5, font: fontRegular, color: cGray });
+  page.drawText(formatDubai(data.deadlineDate, "DD MMM YYYY"), { x: col3X + 68, y: row3Y, size: 7.5, font: fontBold, color: cRed });
+
+  y -= boxHeight + 14;
+
+  // SECTION 1: OFFICIAL CHALLENGE RULES
+  page.drawText("SECTION 1: OFFICIAL CHALLENGE RULES", {
+    x: marginX,
+    y,
+    size: 8.5,
+    font: fontBold,
+    color: cRed,
+  });
+  y -= 11;
+
+  const rulesLines = wrapParagraph(rulesText, contentWidth, 7, fontRegular);
+  for (const line of rulesLines) {
+    if (line === "") {
+      y -= 3;
+      continue;
+    }
+    page.drawText(line, {
+      x: marginX,
+      y,
+      size: 7,
+      font: fontRegular,
+      color: cDark,
+    });
+    y -= 10;
+  }
+
+  y -= 6;
+
+  // SECTION 2: TERMS AND CONDITIONS
+  page.drawText("SECTION 2: PARTICIPANT TERMS & CONDITIONS", {
+    x: marginX,
+    y,
+    size: 8.5,
+    font: fontBold,
+    color: cRed,
+  });
+  y -= 11;
+
+  const termsLines = wrapParagraph(termsText, contentWidth, 7, fontRegular);
+
+  for (const line of termsLines) {
+    if (line === "") {
+      y -= 3;
+      continue;
+    }
+
+    // Check if we need to spill to a continuation page to keep signatures completely intact
+    if (y < 155) {
+      // Add continuation page
+      page = pdfDoc.addPage([PAGE_W, PAGE_H]);
+      drawPageHeader(2);
+      y = PAGE_H - 50;
+
+      page.drawText("SECTION 2: PARTICIPANT TERMS & CONDITIONS (CONTINUED)", {
+        x: marginX,
+        y,
+        size: 8.5,
+        font: fontBold,
+        color: cRed,
+      });
+      y -= 12;
+    }
+
+    page.drawText(line, {
+      x: marginX,
+      y,
+      size: 7,
+      font: fontRegular,
+      color: cDark,
+    });
+    y -= 10;
+  }
+
+  // Ensure signatures are on the current page with sufficient room, or add a dedicated sign page if full
+  if (y < 145) {
+    page = pdfDoc.addPage([PAGE_W, PAGE_H]);
+    drawPageHeader(pdfDoc.getPageCount());
+    y = PAGE_H - 50;
+  }
+
+  // 3. Signatures & Verification Section
+  const sigSectionY = 135;
+
+  page.drawLine({
+    start: { x: marginX, y: sigSectionY + 16 },
+    end: { x: PAGE_W - marginX, y: sigSectionY + 16 },
+    thickness: 1,
+    color: cLightGray,
+  });
+
+  const sigColW = 200;
+  const leftSigX = marginX + 15;
+  const rightSigX = PAGE_W - marginX - sigColW - 15;
+
+  // Left Side: Participant Signature Box
+  page.drawText("PARTICIPANT DIGITAL SIGNATURE & CONSENT", {
+    x: leftSigX,
+    y: sigSectionY,
+    size: 7.5,
+    font: fontBold,
+    color: cDark,
+  });
+
+  // Embed Customer Signature Image if available
+  if (data.signatureDataUrl && data.signatureDataUrl.startsWith("data:image/")) {
+    try {
+      const base64Data = data.signatureDataUrl.replace(/^data:image\/\w+;base64,/, "");
+      const sigBytes = Buffer.from(base64Data, "base64");
+      const isPng = data.signatureDataUrl.includes("image/png");
+      const sigImage = isPng ? await pdfDoc.embedPng(sigBytes) : await pdfDoc.embedJpg(sigBytes);
+
+      const targetW = 130;
+      const targetH = Math.min(42, (targetW / sigImage.width) * sigImage.height);
+
+      page.drawImage(sigImage, {
+        x: leftSigX,
+        y: sigSectionY - 48,
+        width: targetW,
+        height: targetH,
+      });
+    } catch (sigErr) {
+      console.error("Could not embed participant signature in Terms PDF:", sigErr);
+      page.drawText("(Digitally Signed on Registration / Day-1)", {
+        x: leftSigX,
+        y: sigSectionY - 30,
+        size: 7.5,
+        font: fontItalic,
+        color: cRed,
+      });
+    }
+  } else {
+    page.drawText("(Digitally Signed on Registration / Day-1)", {
+      x: leftSigX,
+      y: sigSectionY - 30,
+      size: 7.5,
+      font: fontItalic,
+      color: cRed,
+    });
+  }
+
+  page.drawLine({
+    start: { x: leftSigX, y: sigSectionY - 52 },
+    end: { x: leftSigX + sigColW, y: sigSectionY - 52 },
+    thickness: 0.75,
+    color: cDark,
+  });
+  page.drawText(`${data.userName} (Participant)`, {
+    x: leftSigX,
+    y: sigSectionY - 64,
+    size: 7,
+    font: fontBold,
+    color: cDark,
+  });
+  page.drawText(`Date Signed: ${formatDubai(data.day1Date, "DD MMM YYYY, hh:mm A")}`, {
+    x: leftSigX,
+    y: sigSectionY - 74,
+    size: 6.5,
+    font: fontRegular,
+    color: cGray,
+  });
+
+  // Right Side: Authorized Club Verification & Stamp
+  page.drawText("AUTHORIZED CLUB VERIFICATION & STAMP", {
+    x: rightSigX,
+    y: sigSectionY,
+    size: 7.5,
+    font: fontBold,
+    color: cDark,
+  });
+
+  // Official Stamp image on right
+  const stampPath = path.join(process.cwd(), "public", "stamp.png");
+  if (fs.existsSync(stampPath)) {
+    try {
+      const stampBytes = fs.readFileSync(stampPath);
+      const stampImage = await pdfDoc.embedPng(stampBytes);
+      const stampW = 75;
+      const stampH = (stampW / stampImage.width) * stampImage.height;
+      page.drawImage(stampImage, {
+        x: rightSigX + 60,
+        y: sigSectionY - 50,
+        width: stampW,
+        height: stampH,
+      });
+    } catch {
+      // Stamp optional
+    }
+  }
+
+  page.drawLine({
+    start: { x: rightSigX, y: sigSectionY - 52 },
+    end: { x: rightSigX + sigColW, y: sigSectionY - 52 },
+    thickness: 0.75,
+    color: cDark,
+  });
+  page.drawText(`Face Off Fitness · ${data.branchName}`, {
+    x: rightSigX,
+    y: sigSectionY - 64,
+    size: 7,
+    font: fontBold,
+    color: cDark,
+  });
+  page.drawText(`Verified by: ${data.staffName || "Authorized Club Staff"}`, {
+    x: rightSigX,
+    y: sigSectionY - 74,
+    size: 6.5,
+    font: fontRegular,
+    color: cGray,
+  });
+
+  // Footer Disclaimer on each page
+  const pages = pdfDoc.getPages();
+  for (let i = 0; i < pages.length; i++) {
+    pages[i].drawText(
+      `WEIGHT LOSS CHALLENGE · OFFICIAL LEGAL AGREEMENT · FACE OFF FITNESS DUBAI, UAE · PAGE ${i + 1} OF ${pages.length}`,
+      {
+        x: marginX,
+        y: 20,
+        size: 6.5,
+        font: fontRegular,
+        color: cGray,
+      }
+    );
+  }
+
+  return pdfDoc.save();
+}

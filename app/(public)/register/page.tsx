@@ -16,7 +16,7 @@ export default async function RegisterPage() {
     <div className="min-h-screen bg-background flex flex-col justify-between">
       <Header rightAction="home" />
 
-      <main className="max-w-md w-full mx-auto py-8 px-4 sm:px-6 flex-1">
+      <main className="max-w-xl w-full mx-auto py-8 px-4 sm:px-6 flex-1">
 
         {/* Title Card */}
         <div className="mb-6">

@@ -2,7 +2,7 @@ import Link from "next/link";
 import Logo from "@/components/Logo";
 import prisma from "@/lib/prisma";
 import { isRegistrationWindowOpen, formatDateOnlyDubai } from "@/lib/dayjs";
-import { MapPin, ArrowRight, Trophy, Medal, Award } from "lucide-react";
+import { MapPin, ArrowRight, Trophy, Medal, Award, ExternalLink } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +24,7 @@ export default async function HomePage() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative px-4 sm:px-6 pt-0 pb-16 sm:pt-6 sm:pb-20 flex-1 max-w-4xl mx-auto w-full text-center flex flex-col items-center justify-center">
+      <section className="relative px-4 sm:px-6 lg:px-8 pt-0 pb-12 sm:pt-4 sm:pb-16 flex-1 max-w-5xl mx-auto w-full text-center flex flex-col items-center justify-center">
         {/* Glow backdrop */}
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 sm:w-96 h-72 sm:h-96 bg-gymRed/15 rounded-full blur-3xl pointer-events-none -z-10" />
 
@@ -34,53 +34,54 @@ export default async function HomePage() {
           OFFICIAL TRANSFORMATION CHALLENGE
         </div>
 
-        <h1 className="text-2xl min-[380px]:text-[28px] sm:text-5xl md:text-6xl font-black tracking-tight uppercase leading-tight sm:leading-[1.1] mb-5">
+        <h1 className="text-2xl min-[380px]:text-[32px] sm:text-5xl md:text-6xl font-black tracking-tight uppercase leading-tight sm:leading-[1.1] mb-5">
           <span className="inline-block">
-            TRANSFORM IN <span className="text-gymRed whitespace-nowrap">30 DAYS</span>.
+            <span className="text-gymRed whitespace-nowrap">30 DAYS</span> WEIGHT LOSS CHALLENGE
           </span>
           <br />
-          <span className="inline-block">
+
+          <span className="inline-block text-2xl min-[380px]:text-[32px] sm:text-5xl md:text-6xl">
             <span className="text-gymRed whitespace-nowrap">18,000 AED</span> CASH PRIZE
           </span>
         </h1>
 
-        <p className="text-base sm:text-lg text-zinc-400 max-w-xl mb-4 leading-relaxed">
+        <p className="text-base sm:text-lg text-zinc-400 max-w-2xl mb-4 leading-relaxed">
           The ultimate club weight loss competition across our 6 clubs.
-          Register online with <span className="text-white font-bold">100% Free Registration</span>, visit any of our club for your Day-1 weigh-in, and start your 30-day countdown!
+          Register online with <span className="text-white font-bold">100% Free Registration</span>, visit any of our clubs for your Day-1 weigh-in, and start your 30-day countdown!
         </p>
 
         {/* Free Registration Badge */}
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-6">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          Free Registration · No Entry Fee
+          Free Registration
         </div>
 
         {/* Prize Pool Highlights */}
-        <div className="grid grid-cols-3 gap-2 sm:gap-4 w-full max-w-lg mb-6">
-          <div className="gym-card rounded-2xl p-2 sm:p-4 text-center border-gymRed/40 relative overflow-hidden">
+        <div className="grid grid-cols-3 gap-3 sm:gap-5 w-full max-w-xl mb-6">
+          <div className="gym-card rounded-2xl p-3 sm:p-5 text-center border-gymRed/40 relative overflow-hidden">
             <div className="flex items-center justify-center text-amber-400 mb-1">
-              <Trophy className="w-4 h-4 sm:w-7 sm:h-7" />
+              <Trophy className="w-5 h-5 sm:w-7 sm:h-7" />
             </div>
-            <div className="text-base sm:text-2xl font-black text-white">10,000</div>
-            <div className="text-[9px] sm:text-xs uppercase font-semibold text-zinc-400 tracking-tight sm:tracking-wider whitespace-nowrap mt-0.5">
+            <div className="text-lg sm:text-2xl font-black text-white">10,000</div>
+            <div className="text-[10px] sm:text-xs uppercase font-semibold text-zinc-400 tracking-tight sm:tracking-wider whitespace-nowrap mt-0.5">
               AED · 1st Place
             </div>
           </div>
-          <div className="gym-card rounded-2xl p-2 sm:p-4 text-center">
+          <div className="gym-card rounded-2xl p-3 sm:p-5 text-center">
             <div className="flex items-center justify-center text-amber-600 mb-1">
-              <Medal className="w-4 h-4 sm:w-7 sm:h-7" />
+              <Medal className="w-5 h-5 sm:w-7 sm:h-7" />
             </div>
-            <div className="text-base sm:text-2xl font-black text-white">5,000</div>
-            <div className="text-[9px] sm:text-xs uppercase font-semibold text-zinc-400 tracking-tight sm:tracking-wider whitespace-nowrap mt-0.5">
+            <div className="text-lg sm:text-2xl font-black text-white">5,000</div>
+            <div className="text-[10px] sm:text-xs uppercase font-semibold text-zinc-400 tracking-tight sm:tracking-wider whitespace-nowrap mt-0.5">
               AED · 2nd Place
             </div>
           </div>
-          <div className="gym-card rounded-2xl p-2 sm:p-4 text-center">
+          <div className="gym-card rounded-2xl p-3 sm:p-5 text-center">
             <div className="flex items-center justify-center text-slate-300 mb-1">
-              <Award className="w-4 h-4 sm:w-7 sm:h-7" />
+              <Award className="w-5 h-5 sm:w-7 sm:h-7" />
             </div>
-            <div className="text-base sm:text-2xl font-black text-zinc-300">3,000</div>
-            <div className="text-[9px] sm:text-xs uppercase font-semibold text-zinc-400 tracking-tight sm:tracking-wider whitespace-nowrap mt-0.5">
+            <div className="text-lg sm:text-2xl font-black text-zinc-300">3,000</div>
+            <div className="text-[10px] sm:text-xs uppercase font-semibold text-zinc-400 tracking-tight sm:tracking-wider whitespace-nowrap mt-0.5">
               AED · 3rd Place
             </div>
           </div>
@@ -88,9 +89,9 @@ export default async function HomePage() {
 
         {/* Action Button */}
         {windowStatus.isOpen ? (
-          <div className="w-full max-w-sm flex flex-col items-center gap-3">
+          <div className="w-full max-w-md flex flex-col items-center gap-3">
             {/* Instagram Requirement Notice */}
-            <a href="https://www.instagram.com/faceoff.fitness?stkn=NTB3bG9rZmw3Zmhv" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-zinc-900/90 border border-pink-500/40 hover:border-pink-500 hover:bg-pink-950/30 text-xs text-zinc-300 hover:text-white transition-all group shadow-sm" title="Follow use on Instragram">
+            <a href="https://www.instagram.com/faceoff.fitness?stkn=NTB3bG9rZmw3Zmhv" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-900/90 border border-pink-500/40 hover:border-pink-500 hover:bg-pink-950/30 text-xs text-zinc-300 hover:text-white transition-all group shadow-sm" title="Follow use on Instragram">
               <svg className="w-6 h-6 text-pink-500 fill-current shrink-0 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
                 <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
               </svg>
@@ -114,8 +115,8 @@ export default async function HomePage() {
       </section>
 
       {/* How It Works Steps */}
-      <section className="border-t border-surface-border bg-surface/40 py-12 px-4 sm:px-6">
-        <div className="max-w-4xl mx-auto">
+      <section className="border-t border-surface-border bg-surface/40 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto">
           <h2 className="text-center text-xs font-bold uppercase tracking-widest text-gymRed mb-2">
             SIMPLE 4-STEP PROCESS
           </h2>
@@ -148,7 +149,7 @@ export default async function HomePage() {
                 <h4 className="font-bold text-white text-base">Day-1 Weigh-In</h4>
               </div>
               <p className="text-zinc-400 text-xs leading-relaxed">
-                Visit any of our club between 1:00 PM to 10:00 PM with your valid <span className="text-white font-semibold">Emirates ID</span> and present your QR code. Our team will record your official baseline weight to activate your 30-day challenge.
+                Visit any of our club between 1:00 PM to 10:00 PM with your <span className="text-white font-semibold">Emirates ID</span> and present your QR code. Our team will record your official baseline weight to activate your 30-day challenge.
               </p>
             </div>
 
@@ -176,7 +177,7 @@ export default async function HomePage() {
                 <br />
                 Time: <span className="text-gymRed font-bold">3:00 PM</span>.
                 <br />
-                Official announcement of the top transformation winners!
+                Official announcement of the weight loss challenge winners!
               </p>
             </div>
           </div>
@@ -184,7 +185,7 @@ export default async function HomePage() {
       </section>
 
       {/* Participating Branches */}
-      <section className="py-12 px-4 sm:px-6 max-w-5xl mx-auto w-full">
+      <section className="py-12 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto w-full">
         <h2 className="text-center text-xs font-bold uppercase tracking-widest text-zinc-400 mb-2">
           OUR CLUBS
         </h2>
@@ -192,101 +193,173 @@ export default async function HomePage() {
           Visit any of our 6 clubs across Dubai for your weigh-ins
         </p>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-          {/* a) Al Hamriya, Deira dubai - mix gym */}
-          <div className="gym-card rounded-xl p-4 text-left flex items-start gap-3 border-zinc-800/80 hover:border-gymRed/40 transition-colors">
-            <div className="w-8 h-8 rounded-lg bg-gymRed/15 text-gymRed flex items-center justify-center shrink-0 mt-0.5">
-              <MapPin className="w-4 h-4" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between gap-2 mb-1">
-                <span className="font-bold text-sm text-white truncate">Al Hamriya</span>
-                <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md bg-zinc-800 text-zinc-300 border border-zinc-700/60 shrink-0">
-                  Mix Gym
-                </span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* 1. Al Hamriya, Deira, Dubai (Mix Gym) */}
+          <div className="gym-card rounded-xl p-4 sm:p-5 text-left flex flex-col justify-between border-zinc-800/80 hover:border-gymRed/40 transition-colors">
+            <div className="flex items-start gap-3.5 mb-3">
+              <div className="w-9 h-9 rounded-lg bg-gymRed/15 text-gymRed flex items-center justify-center shrink-0 mt-0.5">
+                <MapPin className="w-4 h-4" />
               </div>
-              <p className="text-xs text-zinc-400">Deira, Dubai</p>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <span className="font-bold text-sm text-white leading-tight">Al Hamriya</span>
+                  <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md bg-zinc-800 text-zinc-300 border border-zinc-700/60 shrink-0">
+                    Mix Gym
+                  </span>
+                </div>
+                <p className="text-xs text-zinc-400">Deira, Dubai</p>
+              </div>
             </div>
+            <a
+              href="https://maps.app.goo.gl/NWkFM5rwocyx4f2o8"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-gymRed hover:text-gymRed/80 bg-gymRed/10 hover:bg-gymRed/15 py-1.5 px-3 rounded-lg border border-gymRed/20 transition-all self-start"
+            >
+              <MapPin className="w-3.5 h-3.5" />
+              <span>Location on Map</span>
+              <ExternalLink className="w-3 h-3 ml-0.5 opacity-70" />
+            </a>
           </div>
 
-          {/* b) Al Hamriya, Deira dubai - ladies gym */}
-          <div className="gym-card rounded-xl p-4 text-left flex items-start gap-3 border-zinc-800/80 hover:border-pink-500/40 transition-colors">
-            <div className="w-8 h-8 rounded-lg bg-pink-500/15 text-pink-400 flex items-center justify-center shrink-0 mt-0.5">
-              <MapPin className="w-4 h-4" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between gap-2 mb-1">
-                <span className="font-bold text-sm text-white truncate">Al Hamriya</span>
-                <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md bg-pink-950/50 text-pink-300 border border-pink-800/60 shrink-0">
-                  Ladies Gym
-                </span>
+          {/* 2. Al Hamriya, Deira, Dubai (Ladies Gym) */}
+          <div className="gym-card rounded-xl p-4 sm:p-5 text-left flex flex-col justify-between border-zinc-800/80 hover:border-pink-500/40 transition-colors">
+            <div className="flex items-start gap-3.5 mb-3">
+              <div className="w-9 h-9 rounded-lg bg-pink-500/15 text-pink-400 flex items-center justify-center shrink-0 mt-0.5">
+                <MapPin className="w-4 h-4" />
               </div>
-              <p className="text-xs text-zinc-400">Deira, Dubai</p>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <span className="font-bold text-sm text-white leading-tight">Al Hamriya</span>
+                  <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md bg-pink-950/50 text-pink-300 border border-pink-800/60 shrink-0">
+                    Ladies Gym
+                  </span>
+                </div>
+                <p className="text-xs text-zinc-400">Deira, Dubai</p>
+              </div>
             </div>
+            <a
+              href="https://maps.app.goo.gl/NWkFM5rwocyx4f2o8"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-pink-400 hover:text-pink-300 bg-pink-500/10 hover:bg-pink-500/15 py-1.5 px-3 rounded-lg border border-pink-500/20 transition-all self-start"
+            >
+              <MapPin className="w-3.5 h-3.5" />
+              <span>Location on Map</span>
+              <ExternalLink className="w-3 h-3 ml-0.5 opacity-70" />
+            </a>
           </div>
 
-          {/* c) Al Rashidiya, dubai - mix gym */}
-          <div className="gym-card rounded-xl p-4 text-left flex items-start gap-3 border-zinc-800/80 hover:border-gymRed/40 transition-colors">
-            <div className="w-8 h-8 rounded-lg bg-gymRed/15 text-gymRed flex items-center justify-center shrink-0 mt-0.5">
-              <MapPin className="w-4 h-4" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between gap-2 mb-1">
-                <span className="font-bold text-sm text-white truncate">Al Rashidiya</span>
-                <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md bg-zinc-800 text-zinc-300 border border-zinc-700/60 shrink-0">
-                  Mix Gym
-                </span>
+          {/* 3. Al Rashidiya, Dubai (Mix Gym) */}
+          <div className="gym-card rounded-xl p-4 sm:p-5 text-left flex flex-col justify-between border-zinc-800/80 hover:border-gymRed/40 transition-colors">
+            <div className="flex items-start gap-3.5 mb-3">
+              <div className="w-9 h-9 rounded-lg bg-gymRed/15 text-gymRed flex items-center justify-center shrink-0 mt-0.5">
+                <MapPin className="w-4 h-4" />
               </div>
-              <p className="text-xs text-zinc-400">Dubai</p>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <span className="font-bold text-sm text-white truncate">Al Rashidiya</span>
+                  <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md bg-zinc-800 text-zinc-300 border border-zinc-700/60 shrink-0">
+                    Mix Gym
+                  </span>
+                </div>
+                <p className="text-xs text-zinc-400">Dubai</p>
+              </div>
             </div>
+            <a
+              href="https://maps.app.goo.gl/KTJzpYH4av3wR1fD9"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-gymRed hover:text-gymRed/80 bg-gymRed/10 hover:bg-gymRed/15 py-1.5 px-3 rounded-lg border border-gymRed/20 transition-all self-start"
+            >
+              <MapPin className="w-3.5 h-3.5" />
+              <span>Location on Map</span>
+              <ExternalLink className="w-3 h-3 ml-0.5 opacity-70" />
+            </a>
           </div>
 
-          {/* d) Al Rashidiya, dubai - LADIES gym */}
-          <div className="gym-card rounded-xl p-4 text-left flex items-start gap-3 border-zinc-800/80 hover:border-pink-500/40 transition-colors">
-            <div className="w-8 h-8 rounded-lg bg-pink-500/15 text-pink-400 flex items-center justify-center shrink-0 mt-0.5">
-              <MapPin className="w-4 h-4" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between gap-2 mb-1">
-                <span className="font-bold text-sm text-white truncate">Al Rashidiya</span>
-                <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md bg-pink-950/50 text-pink-300 border border-pink-800/60 shrink-0">
-                  Ladies Gym
-                </span>
+          {/* 4. Al Rashidiya, Dubai (Ladies Gym) */}
+          <div className="gym-card rounded-xl p-4 sm:p-5 text-left flex flex-col justify-between border-zinc-800/80 hover:border-pink-500/40 transition-colors">
+            <div className="flex items-start gap-3.5 mb-3">
+              <div className="w-9 h-9 rounded-lg bg-pink-500/15 text-pink-400 flex items-center justify-center shrink-0 mt-0.5">
+                <MapPin className="w-4 h-4" />
               </div>
-              <p className="text-xs text-zinc-400">Dubai</p>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <span className="font-bold text-sm text-white truncate">Al Rashidiya</span>
+                  <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md bg-pink-950/50 text-pink-300 border border-pink-800/60 shrink-0">
+                    Ladies Gym
+                  </span>
+                </div>
+                <p className="text-xs text-zinc-400">Dubai</p>
+              </div>
             </div>
+            <a
+              href="https://maps.app.goo.gl/KTJzpYH4av3wR1fD9"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-pink-400 hover:text-pink-300 bg-pink-500/10 hover:bg-pink-500/15 py-1.5 px-3 rounded-lg border border-pink-500/20 transition-all self-start"
+            >
+              <MapPin className="w-3.5 h-3.5" />
+              <span>Location on Map</span>
+              <ExternalLink className="w-3 h-3 ml-0.5 opacity-70" />
+            </a>
           </div>
 
-          {/* e) Al Nahda 2 - Dubai - mix gym */}
-          <div className="gym-card rounded-xl p-4 text-left flex items-start gap-3 border-zinc-800/80 hover:border-gymRed/40 transition-colors">
-            <div className="w-8 h-8 rounded-lg bg-gymRed/15 text-gymRed flex items-center justify-center shrink-0 mt-0.5">
-              <MapPin className="w-4 h-4" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between gap-2 mb-1">
-                <span className="font-bold text-sm text-white truncate">Al Nahda 2</span>
-                <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md bg-zinc-800 text-zinc-300 border border-zinc-700/60 shrink-0">
-                  Mix Gym
-                </span>
+          {/* 5. Al Nahda 2, Dubai */}
+          <div className="gym-card rounded-xl p-4 sm:p-5 text-left flex flex-col justify-between border-zinc-800/80 hover:border-gymRed/40 transition-colors">
+            <div className="flex items-start gap-3.5 mb-3">
+              <div className="w-9 h-9 rounded-lg bg-gymRed/15 text-gymRed flex items-center justify-center shrink-0 mt-0.5">
+                <MapPin className="w-4 h-4" />
               </div>
-              <p className="text-xs text-zinc-400">Dubai</p>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <span className="font-bold text-sm text-white truncate">Al Nahda 2</span>
+                  <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md bg-zinc-800 text-zinc-300 border border-zinc-700/60 shrink-0">
+                    Mix Gym
+                  </span>
+                </div>
+                <p className="text-xs text-zinc-400">Dubai</p>
+              </div>
             </div>
+            <a
+              href="https://maps.app.goo.gl/cz3MVyfT9rPD7X3Z7"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-gymRed hover:text-gymRed/80 bg-gymRed/10 hover:bg-gymRed/15 py-1.5 px-3 rounded-lg border border-gymRed/20 transition-all self-start"
+            >
+              <MapPin className="w-3.5 h-3.5" />
+              <span>Location on Map</span>
+              <ExternalLink className="w-3 h-3 ml-0.5 opacity-70" />
+            </a>
           </div>
 
-          {/* f) Al Barsha, tecom dubai - mix gym */}
-          <div className="gym-card rounded-xl p-4 text-left flex items-start gap-3 border-zinc-800/80 hover:border-gymRed/40 transition-colors">
-            <div className="w-8 h-8 rounded-lg bg-gymRed/15 text-gymRed flex items-center justify-center shrink-0 mt-0.5">
-              <MapPin className="w-4 h-4" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between gap-2 mb-1">
-                <span className="font-bold text-sm text-white truncate">Al Barsha</span>
-                <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md bg-zinc-800 text-zinc-300 border border-zinc-700/60 shrink-0">
-                  Mix Gym
-                </span>
+          {/* 6. Al Barsha, Tecom, Internet city */}
+          <div className="gym-card rounded-xl p-4 sm:p-5 text-left flex flex-col justify-between border-zinc-800/80 hover:border-gymRed/40 transition-colors">
+            <div className="flex items-start gap-3.5 mb-3">
+              <div className="w-9 h-9 rounded-lg bg-gymRed/15 text-gymRed flex items-center justify-center shrink-0 mt-0.5">
+                <MapPin className="w-4 h-4" />
               </div>
-              <p className="text-xs text-zinc-400">Tecom, Dubai</p>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <span className="font-bold text-sm text-white leading-tight">Al Barsha</span>
+                  <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md bg-zinc-800 text-zinc-300 border border-zinc-700/60 shrink-0">
+                    Mix Gym
+                  </span>
+                </div>
+                <p className="text-xs text-zinc-400">Al Barsha, Tecom, Internet City</p>
+              </div>
             </div>
+            <a
+              href="https://maps.app.goo.gl/hVBMS237U9fA1zsC6"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-gymRed hover:text-gymRed/80 bg-gymRed/10 hover:bg-gymRed/15 py-1.5 px-3 rounded-lg border border-gymRed/20 transition-all self-start"
+            >
+              <MapPin className="w-3.5 h-3.5" />
+              <span>Location on Map</span>
+              <ExternalLink className="w-3 h-3 ml-0.5 opacity-70" />
+            </a>
           </div>
         </div>
       </section>

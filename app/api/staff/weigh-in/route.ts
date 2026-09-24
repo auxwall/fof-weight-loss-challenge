@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { calculateDeadlineDubai, nowDubai, getDaysRemaining, getFinalWeighInWindow } from "@/lib/dayjs";
 import { sendDay1Email, sendFinalResultEmail } from "@/lib/mailer";
-import { generateChallengePdf } from "@/lib/pdf";
+import { generateChallengePdf, generateTermsAgreementPdf } from "@/lib/pdf";
 import { saveNewImage } from "@/lib/imageHandler";
 
 export async function POST(req: NextRequest) {
@@ -173,7 +173,34 @@ export async function POST(req: NextRequest) {
         }),
       ]);
 
-      // Trigger Email #2
+      // Fetch challenge settings for terms & rules
+      const settings = await prisma.challengeSettings.findUnique({
+        where: { id: "singleton" },
+      });
+
+      // Generate signed Terms & Conditions Agreement PDF
+      let termsPdfBytes: Uint8Array | null = null;
+      try {
+        termsPdfBytes = await generateTermsAgreementPdf({
+          userName: user.name,
+          userId: user.id,
+          emiratesId: user.emiratesId,
+          mobile: user.mobile,
+          email: user.email,
+          branchName: weighIn.branch.label,
+          day1WeightKg: weightNum,
+          day1Date: now,
+          deadlineDate: deadline,
+          signatureDataUrl: signatureDataUrl,
+          staffName: session.name || session.username,
+          rulesText: settings?.rulesText,
+          termsText: settings?.termsText,
+        });
+      } catch (pdfErr) {
+        console.error("Terms & Conditions PDF generation failed:", pdfErr);
+      }
+
+      // Trigger Email #2 with signed Terms & Conditions PDF attached
       try {
         await sendDay1Email({
           email: user.email,
@@ -183,6 +210,8 @@ export async function POST(req: NextRequest) {
           branchName: weighIn.branch.label,
           day1Date: now,
           deadlineDate: deadline,
+          rulesText: settings?.rulesText,
+          pdfBytes: termsPdfBytes,
         });
       } catch (err) {
         console.error("Day-1 email dispatch failed:", err);

@@ -34,7 +34,11 @@ function getLogoAttachment() {
   return null;
 }
 
-const FROM_HEADER = process.env.SMTP_FROM || "Club Weight Loss Challenge <noreply@gymchallenge.ae>";
+const FROM_HEADER =
+  process.env.SMTP_FROM ||
+  (process.env.SMTP_USER
+    ? `"Face Off Fitness | Weight Loss Challenge" <${process.env.SMTP_USER}>`
+    : '"Face Off Fitness | Weight Loss Challenge" <events@faceoffgym.com>');
 const COMPANY_CERTIFICATE_EMAIL = process.env.COMPANY_CERTIFICATE_EMAIL;
 
 /**
@@ -89,7 +93,7 @@ export async function sendRegistrationEmail(params: {
                   Welcome, <span style="color: #EC1C23 !important;">${name}</span>!
                 </h2>
                 <p style="color: #9CA3AF !important; font-size: 14px; line-height: 1.5; margin: 6px 0 18px 0;">
-                  You have successfully registered (Free Registration). Present this official QR Pass when you visit the club:
+                  You have successfully registered. Present this official QR Pass when you visit the club:
                 </p>
 
                 <!-- QR CODE BOX (CENTERED TABLE) -->
@@ -121,10 +125,11 @@ export async function sendRegistrationEmail(params: {
                         <strong style="color: #FFFFFF;">1. Save Your Pass:</strong> Keep this email or screenshot your <strong>QR Code</strong> and <strong>User ID (${userId})</strong> on your phone.
                       </div>
                       <div style="margin-bottom: 10px;">
-                        <strong style="color: #FFFFFF;">2. Visit Any of our Club:</strong> Walk into any of our 6 clubs: <strong>Al Rashidiya, Al Barsha, Abu Hail, or Al Nahda</strong>.
+
+                        <strong style="color: #FFFFFF;">2. Visit Any of our Clubs:</strong> Walk into any of our clubs across Dubai listed below to get started.
                       </div>
                       <div style="margin-bottom: 10px;">
-                        <strong style="color: #FFFFFF;">3. Log Day-1 Starting Weight:</strong> Show this QR code to our team with your valid Emirates ID. They will log your official starting weight on or before 29th Oct 2026.
+                        <strong style="color: #FFFFFF;">3. Log Day-1 Starting Weight:</strong> Show this QR code to our team with your Emirates ID. They will log your official starting weight on or before 29th Oct 2026.
                       </div>
                       <div style="margin-bottom: 10px;">
                         <strong style="color: #FFFFFF;">4. 30-Day Clock Starts:</strong> Your official challenge clock begins on the exact date Day-1 is logged. Complete your final weigh-in within 30 days.
@@ -136,8 +141,92 @@ export async function sendRegistrationEmail(params: {
                   </tr>
                 </table>
 
+                <!-- CLUB LOCATIONS -->
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 8px; margin-bottom: 18px; overflow: hidden;">
+                  <tr>
+                    <td style="padding: 12px 16px; background-color: #222222; border-bottom: 1px solid #2e2e2e;">
+                      <strong style="color: #FFFFFF; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">📍 Our 6 Club Locations & Google Maps Directions</strong>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 14px 16px; font-size: 12px; color: #D1D5DB; line-height: 1.6;">
+                      <!-- 1. Al Hamriya Mix Gym -->
+                      <div style="padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px solid #262626;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+                          <strong style="color: #FFFFFF; font-size: 13px;">Al Hamriya, Deira, Dubai</strong>
+                          <span style="font-size: 10px; background-color: #2a2a2a; color: #E5E7EB; padding: 2px 6px; border-radius: 4px; border: 1px solid #383838;">Mix Gym</span>
+                        </div>
+                        <div style="color: #9CA3AF; font-size: 11px; margin-bottom: 6px;">Al Hamriya Club — Mix Gym (Deira, Dubai)</div>
+                        <a href="https://maps.app.goo.gl/NWkFM5rwocyx4f2o8" target="_blank" rel="noopener noreferrer" style="display: inline-block; background-color: #D32F2F; color: #FFFFFF !important; text-decoration: none; padding: 4px 12px; border-radius: 4px; font-size: 11px; font-weight: bold;">
+                          📍 View on Google Maps &rarr;
+                        </a>
+                      </div>
+
+                      <!-- 2. Al Hamriya Ladies Gym -->
+                      <div style="padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px solid #262626;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+                          <strong style="color: #FFFFFF; font-size: 13px;">Al Hamriya, Deira, Dubai</strong>
+                          <span style="font-size: 10px; background-color: #831843; color: #F472B6; padding: 2px 6px; border-radius: 4px; border: 1px solid #9D174D;">Ladies Gym</span>
+                        </div>
+                        <div style="color: #9CA3AF; font-size: 11px; margin-bottom: 6px;">Al Hamriya Club — Ladies Gym (Deira, Dubai)</div>
+                        <a href="https://maps.app.goo.gl/NWkFM5rwocyx4f2o8" target="_blank" rel="noopener noreferrer" style="display: inline-block; background-color: #D32F2F; color: #FFFFFF !important; text-decoration: none; padding: 4px 12px; border-radius: 4px; font-size: 11px; font-weight: bold;">
+                          📍 View on Google Maps &rarr;
+                        </a>
+                      </div>
+
+                      <!-- 3. Al Rashidiya Mix Gym -->
+                      <div style="padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px solid #262626;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+                          <strong style="color: #FFFFFF; font-size: 13px;">Al Rashidiya, Dubai</strong>
+                          <span style="font-size: 10px; background-color: #2a2a2a; color: #E5E7EB; padding: 2px 6px; border-radius: 4px; border: 1px solid #383838;">Mix Gym</span>
+                        </div>
+                        <div style="color: #9CA3AF; font-size: 11px; margin-bottom: 6px;">Al Rashidiya Club — Mix Gym (Dubai)</div>
+                        <a href="https://maps.app.goo.gl/KTJzpYH4av3wR1fD9" target="_blank" rel="noopener noreferrer" style="display: inline-block; background-color: #D32F2F; color: #FFFFFF !important; text-decoration: none; padding: 4px 12px; border-radius: 4px; font-size: 11px; font-weight: bold;">
+                          📍 View on Google Maps &rarr;
+                        </a>
+                      </div>
+
+                      <!-- 4. Al Rashidiya Ladies Gym -->
+                      <div style="padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px solid #262626;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+                          <strong style="color: #FFFFFF; font-size: 13px;">Al Rashidiya, Dubai</strong>
+                          <span style="font-size: 10px; background-color: #831843; color: #F472B6; padding: 2px 6px; border-radius: 4px; border: 1px solid #9D174D;">Ladies Gym</span>
+                        </div>
+                        <div style="color: #9CA3AF; font-size: 11px; margin-bottom: 6px;">Al Rashidiya Club — Ladies Gym (Dubai)</div>
+                        <a href="https://maps.app.goo.gl/KTJzpYH4av3wR1fD9" target="_blank" rel="noopener noreferrer" style="display: inline-block; background-color: #D32F2F; color: #FFFFFF !important; text-decoration: none; padding: 4px 12px; border-radius: 4px; font-size: 11px; font-weight: bold;">
+                          📍 View on Google Maps &rarr;
+                        </a>
+                      </div>
+
+                      <!-- 5. Al Nahda 2 -->
+                      <div style="padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px solid #262626;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+                          <strong style="color: #FFFFFF; font-size: 13px;">Al Nahda 2, Dubai</strong>
+                          <span style="font-size: 10px; background-color: #2a2a2a; color: #E5E7EB; padding: 2px 6px; border-radius: 4px; border: 1px solid #383838;">Mix Gym</span>
+                        </div>
+                        <div style="color: #9CA3AF; font-size: 11px; margin-bottom: 6px;">Al Nahda 2 Club — Mix Gym (Dubai)</div>
+                        <a href="https://maps.app.goo.gl/cz3MVyfT9rPD7X3Z7" target="_blank" rel="noopener noreferrer" style="display: inline-block; background-color: #D32F2F; color: #FFFFFF !important; text-decoration: none; padding: 4px 12px; border-radius: 4px; font-size: 11px; font-weight: bold;">
+                          📍 View on Google Maps &rarr;
+                        </a>
+                      </div>
+
+                      <!-- 6. Al Barsha -->
+                      <div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+                          <strong style="color: #FFFFFF; font-size: 13px;">Al Barsha, Tecom, Internet City</strong>
+                          <span style="font-size: 10px; background-color: #2a2a2a; color: #E5E7EB; padding: 2px 6px; border-radius: 4px; border: 1px solid #383838;">Mix Gym</span>
+                        </div>
+                        <div style="color: #9CA3AF; font-size: 11px; margin-bottom: 6px;">Al Barsha Club — Mix Gym (Tecom, Internet City)</div>
+                        <a href="https://maps.app.goo.gl/hVBMS237U9fA1zsC6" target="_blank" rel="noopener noreferrer" style="display: inline-block; background-color: #D32F2F; color: #FFFFFF !important; text-decoration: none; padding: 4px 12px; border-radius: 4px; font-size: 11px; font-weight: bold;">
+                          📍 View on Google Maps &rarr;
+                        </a>
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+
                 <p style="color: #9CA3AF !important; font-size: 12px; margin: 0;">
-                  Registered Club: <strong style="color: #FFFFFF;">${branchName}</strong> · (You may visit any of our club)
+                  Registered Club: <strong style="color: #FFFFFF;">${branchName}</strong> · (You may visit any of our clubs)
                 </p>
               </td>
             </tr>
@@ -145,7 +234,7 @@ export async function sendRegistrationEmail(params: {
             <!-- FOOTER -->
             <tr>
               <td align="center" style="font-size: 11px; color: #6B7280 !important; padding: 14px; background-color: #111111; border-top: 1px solid #222222; text-align: center;">
-                Face off Fitness · Club Weight Loss Challenge · Dubai, UAE
+                Face off Fitness · Weight Loss Challenge · Dubai, UAE
               </td>
             </tr>
           </table>
@@ -193,8 +282,9 @@ export async function sendDay1Email(params: {
   day1Date: Date | string;
   deadlineDate: Date | string;
   rulesText?: string | null;
+  pdfBytes?: Uint8Array | null;
 }): Promise<{ success: boolean; mocked?: boolean }> {
-  const { email, name, userId, weightKg, branchName, day1Date, deadlineDate } = params;
+  const { email, name, userId, weightKg, branchName, day1Date, deadlineDate, pdfBytes } = params;
   const transporter = createTransporter();
   const logoAttachment = getLogoAttachment();
 
@@ -291,6 +381,25 @@ export async function sendDay1Email(params: {
                   </tr>
                 </table>
 
+                ${pdfBytes
+      ? `
+                <!-- SIGNED TERMS & CONDITIONS ATTACHMENT CARD -->
+                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #1A1A1A; border: 1px solid #262626; border-left: 4px solid #10B981; border-radius: 10px; margin: 16px 0; text-align: left;">
+                  <tr>
+                    <td style="padding: 14px 18px;">
+                      <div style="font-size: 12px; color: #10B981 !important; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">
+                        📄 Signed Terms & Conditions Agreement Attached
+                      </div>
+                      <div style="font-size: 12px; color: #D1D5DB !important; line-height: 1.5;">
+                        Your official signed Challenge Terms & Conditions agreement is attached to this email as a PDF document for your records.
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+                `
+      : ""
+    }
+
                 ${effectiveRules
       ? `
                 <!-- OFFICIAL CHALLENGE RULES FROM DB -->
@@ -334,6 +443,14 @@ export async function sendDay1Email(params: {
     const attachments: any[] = [];
     if (logoAttachment) attachments.push(logoAttachment);
 
+    if (pdfBytes) {
+      attachments.push({
+        filename: `ChallengeAgreement-${userId}.pdf`,
+        content: Buffer.from(pdfBytes),
+        contentType: "application/pdf",
+      });
+    }
+
     await transporter.sendMail({
       from: FROM_HEADER,
       to: email,
@@ -362,8 +479,12 @@ export async function sendFinalResultEmail(params: {
 }): Promise<{ success: boolean; mocked?: boolean }> {
   const { email, name, userId, day1WeightKg, finalWeightKg, kgLost, pdfBytes } = params;
   const transporter = createTransporter();
-  const logoAttachment = getLogoAttachment();
-  const kgLostText = `${kgLost > 0 ? "-" : ""}${Math.abs(kgLost).toFixed(3)} kg`;
+  const kgLostText =
+    kgLost > 0
+      ? `-${Math.abs(kgLost).toFixed(3)} kg`
+      : kgLost < 0
+        ? `+${Math.abs(kgLost).toFixed(3)} kg`
+        : "0.000 kg";
 
   const html = `
     <!DOCTYPE html>
@@ -522,14 +643,28 @@ export async function sendReminderEmail(params: {
   day1Date: Date | string;
   day30Date: Date | string;
   day31Date: Date | string;
+  reminderType?: "DAY_28" | "SAME_DAY";
 }): Promise<{ success: boolean; mocked?: boolean }> {
-  const { email, name, userId, day1WeightKg, day1Date, day30Date, day31Date } = params;
+  const { email, name, userId, day1WeightKg, day1Date, day30Date, day31Date, reminderType = "DAY_28" } = params;
   const transporter = createTransporter();
   const logoAttachment = getLogoAttachment();
 
+  const isSameDay = reminderType === "SAME_DAY";
   const day30DateFormatted = formatDubai(day30Date, "DD MMMM YYYY");
   const day31DateFormatted = formatDubai(day31Date, "DD MMMM YYYY");
   const day1DateFormatted = formatDubai(day1Date, "DD MMMM YYYY");
+
+  const badgeText = isSameDay ? "Final Weigh-In Open Today! (Day 30)" : "Final Weigh-In Reminder (2 Days Left)";
+  const headline = isSameDay
+    ? `Today is the Day, <span style="color: #EC1C23 !important;">${name}</span>!`
+    : `Almost at the Finish Line, <span style="color: #EC1C23 !important;">${name}</span>!`;
+  const introText = isSameDay
+    ? `Today is <strong style="color: #FFFFFF;">Day 30</strong> of your 30-day challenge! Your official Final Weigh-In window is <strong style="color: #EC1C23;">OPEN TODAY</strong>. Visit any of our clubs today to record your final weight and claim your Certificate of Completion.`
+    : `This is a friendly reminder that you are on <strong style="color: #FFFFFF;">Day 28</strong> of your 30-day challenge. Your official Final Weigh-In window opens in exactly <strong style="color: #EC1C23;">2 days</strong> on ${day30DateFormatted}!`;
+
+  const subject = isSameDay
+    ? `🔥 TODAY IS DAY 30: Complete Your Final Weigh-In Today! — Face Off Fitness`
+    : `⏰ Reminder: Your Final Weigh-In (Day 30) is in 2 Days! — Face Off Fitness`;
 
   const html = `
     <!DOCTYPE html>
@@ -537,7 +672,7 @@ export async function sendReminderEmail(params: {
       <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Final Weigh-In Reminder</title>
+        <title>${isSameDay ? "Final Weigh-In Today" : "Final Weigh-In Reminder"}</title>
       </head>
       <body style="margin: 0; padding: 24px 10px; background-color: #0A0A0A; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
         <center>
@@ -557,7 +692,7 @@ export async function sendReminderEmail(params: {
                   WEIGHT LOSS CHALLENGE
                 </h1>
                 <div style="color: #EC1C23 !important; font-size: 12px; font-weight: 700; letter-spacing: 1.5px; margin-top: 4px; text-transform: uppercase;">
-                  Final Weigh-In Reminder (2 Days Left)
+                  ${badgeText}
                 </div>
               </td>
             </tr>
@@ -566,10 +701,10 @@ export async function sendReminderEmail(params: {
             <tr>
               <td align="center" style="padding: 0 24px 24px 24px; text-align: center; color: #FFFFFF;">
                 <h2 style="color: #FFFFFF !important; margin-top: 0; font-size: 22px; font-weight: 700;">
-                  Almost at the Finish Line, <span style="color: #EC1C23 !important;">${name}</span>!
+                  ${headline}
                 </h2>
                 <p style="color: #9CA3AF !important; font-size: 14px; line-height: 1.5; margin: 6px 0 18px 0;">
-                  This is a friendly reminder that you are on <strong style="color: #FFFFFF;">Day 28</strong> of your 30-day challenge. Your official Final Weigh-In window opens in exactly <strong style="color: #EC1C23;">2 days</strong>!
+                  ${introText}
                 </p>
 
                 <!-- USER ID BADGE -->
@@ -586,13 +721,13 @@ export async function sendReminderEmail(params: {
                   <tr>
                     <td style="padding: 18px 20px;">
                       <div style="font-size: 12px; color: #EC1C23 !important; text-transform: uppercase; letter-spacing: 0.5px; font-weight: bold;">
-                        Target Final Weigh-In Date (Day 30)
+                        ${isSameDay ? "Official Final Weigh-In Window (OPEN TODAY)" : "Target Final Weigh-In Date (Day 30)"}
                       </div>
                       <div style="font-size: 24px; font-weight: bold; color: #FFFFFF !important; margin-top: 4px;">
                         ${day30DateFormatted}
                       </div>
                       <div style="font-size: 12px; color: #9CA3AF !important; margin-top: 6px; line-height: 1.5;">
-                        Your final weigh-in window is open on Day 30 (${day30DateFormatted}).
+                        ${isSameDay ? "Please visit any Face Off Fitness club before 10:00 PM today." : `Your final weigh-in window is open on Day 30 (${day30DateFormatted}).`}
                       </div>
                     </td>
                   </tr>
@@ -618,7 +753,7 @@ export async function sendReminderEmail(params: {
                         📍 What You Need To Do:
                       </div>
                       <div style="font-size: 13px; color: #D1D5DB !important; line-height: 1.6;">
-                        1. Visit any Face Off Fitness club on <strong>${day30DateFormatted}</strong>.<br>
+                        1. Visit any Face Off Fitness club across Dubai.<br>
                         2. Present your User ID (<strong>${userId}</strong>) or QR Pass to our front desk staff.<br>
                         3. Step onto the official scale for your verified final weigh-in & certificate!
                       </div>
@@ -655,7 +790,7 @@ export async function sendReminderEmail(params: {
     await transporter.sendMail({
       from: FROM_HEADER,
       to: email,
-      subject: `⏰ Reminder: Your Final Weigh-In (Day 30) is in 2 Days! — Face Off Fitness`,
+      subject,
       html,
       attachments,
     });

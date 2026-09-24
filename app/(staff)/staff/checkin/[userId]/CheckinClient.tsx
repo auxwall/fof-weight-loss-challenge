@@ -210,7 +210,7 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
 
   return (
     <div className="min-h-screen bg-background flex flex-col justify-between py-6 px-4">
-      <div className="max-w-md w-full mx-auto space-y-4">
+      <div className="max-w-2xl w-full mx-auto space-y-4">
         {/* Navigation Bar */}
         <div className="flex items-center justify-between">
           <Link
@@ -440,8 +440,7 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
                     label="1. Emirates ID Photo"
                     subLabel="Capture clear front photo of the Emirates ID"
                   />
-                  <div className="flex flex-row gap-4">
-
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {/* 2. Scale Photo Proof */}
                     <ScalePhotoCapture
                       value={scalePhotoDay1}
@@ -449,7 +448,6 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
                       label="2. Scale Photo"
                       subLabel="Capture scale display showing weight readout"
                     />
-
 
                     {/* 3. Scale + Person on Weigh Machine Photo Proof */}
                     <ScalePhotoCapture
@@ -693,12 +691,19 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
                     {/* Live Weight Loss Preview */}
                     {liveKgLost !== null && (
                       <div className="p-3 rounded-xl bg-zinc-900 border border-gymRed/30 flex items-center justify-between text-xs">
-                        <span className="text-zinc-400 font-semibold uppercase">Total Weight Reduced:</span>
+                        <span className="text-zinc-400 font-semibold uppercase">
+                          {liveKgLost > 0 ? "Total Weight Reduced:" : liveKgLost < 0 ? "Weight Gained:" : "Weight Difference:"}
+                        </span>
                         <span
-                          className={`font-mono text-base font-black ${liveKgLost > 0 ? "text-gymRed" : "text-zinc-300"
-                            }`}
+                          className={`font-mono text-base font-black ${
+                            liveKgLost > 0 ? "text-emerald-400" : liveKgLost < 0 ? "text-red-400" : "text-zinc-300"
+                          }`}
                         >
-                          {liveKgLost > 0 ? `-${liveKgLost.toFixed(3)} kg` : `${liveKgLost.toFixed(3)} kg`}
+                          {liveKgLost > 0
+                            ? `-${liveKgLost.toFixed(3)} kg`
+                            : liveKgLost < 0
+                            ? `+${Math.abs(liveKgLost).toFixed(3)} kg`
+                            : "0.000 kg"}
                         </span>
                       </div>
                     )}
@@ -711,7 +716,7 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
                       subLabel="Capture clear front photo of the Emirates ID"
                     />
 
-                    <div className="flex flex-row gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {/* 2. Scale Photo Proof */}
                       <ScalePhotoCapture
                         value={scalePhotoFinal}
@@ -822,12 +827,33 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
                   </div>
 
                   <div>
-                    <span className="text-[10px] text-gymRed uppercase font-bold block">Weight Reduced</span>
-                    <span className="font-mono text-sm font-black text-gymRed block">
-                      {day1WeighIn && finalWeighIn
-                        ? `-${(Number(day1WeighIn.weightKg) - Number(finalWeighIn.weightKg)).toFixed(3)} kg`
-                        : "—"}
-                    </span>
+                    {(() => {
+                      if (!day1WeighIn || !finalWeighIn) {
+                        return (
+                          <>
+                            <span className="text-[10px] text-zinc-400 uppercase font-bold block">Weight Delta</span>
+                            <span className="font-mono text-sm font-black text-zinc-500 block">—</span>
+                          </>
+                        );
+                      }
+                      const diff = Number(day1WeighIn.weightKg) - Number(finalWeighIn.weightKg);
+                      const isLost = diff > 0;
+                      const isGained = diff < 0;
+                      return (
+                        <>
+                          <span className={`text-[10px] uppercase font-bold block ${isLost ? "text-emerald-400" : isGained ? "text-red-400" : "text-zinc-400"}`}>
+                            {isLost ? "Weight Reduced" : isGained ? "Weight Gained" : "No Change"}
+                          </span>
+                          <span className={`font-mono text-sm font-black block ${isLost ? "text-emerald-400" : isGained ? "text-red-400" : "text-zinc-200"}`}>
+                            {isLost
+                              ? `-${diff.toFixed(3)} kg`
+                              : isGained
+                              ? `+${Math.abs(diff).toFixed(3)} kg`
+                              : "0.000 kg"}
+                          </span>
+                        </>
+                      );
+                    })()}
                     <span className="text-[9px] text-zinc-500 block mt-0.5">
                       Total Delta
                     </span>

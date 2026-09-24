@@ -12,12 +12,6 @@ enum Gender {
   FEMALE
 }
 
-enum BranchName {
-  AL_RASHIDIYA
-  AL_BARSHA
-  ABU_HAIL
-  AL_NAHDA
-}
 
 enum ChallengeStatus {
   REGISTERED       // registered, no Day-1 weigh-in yet
@@ -36,11 +30,23 @@ enum WeighInType {
   FINAL
 }
 
+enum BranchName {
+  AL_HAMRIYA_MIX
+  AL_HAMRIYA_LADIES
+  AL_RASHIDIYA_MIX
+  AL_RASHIDIYA_LADIES
+  AL_NAHDA_2
+  AL_BARSHA
+  AL_RASHIDIYA
+  ABU_HAIL
+  AL_NAHDA
+}
+
 model Branch {
   id        String     @id @default(cuid())
   name      BranchName @unique
-  label     String     // e.g. "Al Barsha"
-  address   String?    // e.g. "Barsha Heights (Tecom)"
+  label     String     // e.g. "Al Hamriya, Deira, Dubai (Mix Gym)"
+  address   String?    // e.g. "Deira, Dubai"
   createdAt DateTime   @default(now())
 
   staff     Staff[]
