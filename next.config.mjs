@@ -2,7 +2,8 @@
 const nextConfig = {
   reactStrictMode: true,
   experimental: {
-    serverComponentsExternalPackages: ['pdf-lib', 'bcryptjs'],
+    serverComponentsExternalPackages: ['pdf-lib', 'bcryptjs', 'node-schedule'],
+    instrumentationHook: true,
   },
 };
 

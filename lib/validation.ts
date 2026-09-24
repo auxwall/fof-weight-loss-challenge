@@ -58,10 +58,24 @@ export const RegisterSchema = z.object({
     error: "Please select your gender.",
   }),
 
-  branchId: z
-    .string({ error: "Please select your branch." })
+  dob: z
+    .string({ error: "Date of birth is required." })
     .trim()
-    .min(1, "Please select your primary gym branch."),
+    .min(1, "Date of birth is required.")
+    .refine(
+      (val) => {
+        const d = new Date(val);
+        return !isNaN(d.getTime()) && d < new Date();
+      },
+      {
+        message: "Please enter a valid date of birth.",
+      }
+    ),
+
+  branchId: z
+    .string({ error: "Please select your club." })
+    .trim()
+    .min(1, "Please select your primary gym club."),
 
   termsAccepted: z.literal(true, {
     error: "You must accept the terms and conditions to register.",

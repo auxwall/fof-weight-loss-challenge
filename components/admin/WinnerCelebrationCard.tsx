@@ -194,21 +194,21 @@ export default function WinnerCelebrationCard({ winners, onReset }: WinnerCelebr
               <h2 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-tight mt-1">
                 {first.name}
               </h2>
-              <div className="text-xs text-zinc-400 font-semibold">{first.branchLabel} Branch</div>
+              <div className="text-xs text-zinc-400 font-semibold">{first.branchLabel} Club</div>
 
               {/* Stats Highlight */}
               <div className="mt-4 py-2.5 px-4 bg-black/70 rounded-2xl border border-amber-400/30 inline-flex items-center justify-center gap-4">
                 <div>
                   <span className="text-[10px] text-zinc-400 uppercase font-bold block">Weight Lost</span>
                   <span className="text-2xl font-black text-gymRed font-mono">
-                    -{first.kgLost.toFixed(1)} <span className="text-xs">KG</span>
+                    -{Number(first.kgLost).toFixed(3)} <span className="text-xs">KG</span>
                   </span>
                 </div>
                 <div className="h-8 w-px bg-zinc-800" />
                 <div>
                   <span className="text-[10px] text-zinc-400 uppercase font-bold block">Cash Prize</span>
                   <span className="text-2xl font-black text-amber-400 font-mono">
-                    15,000 <span className="text-xs">AED</span>
+                    10,000 <span className="text-xs">AED</span>
                   </span>
                 </div>
               </div>
@@ -232,7 +232,7 @@ export default function WinnerCelebrationCard({ winners, onReset }: WinnerCelebr
 
                 <div className="mt-2.5 pt-2 border-t border-zinc-800">
                   <div className="text-lg font-black text-gymRed font-mono">
-                    -{second.kgLost.toFixed(1)} KG
+                    -{Number(second.kgLost).toFixed(3)} KG
                   </div>
                   <div className="text-xs font-bold text-zinc-200 font-mono mt-0.5">
                     5,000 AED
@@ -256,7 +256,7 @@ export default function WinnerCelebrationCard({ winners, onReset }: WinnerCelebr
 
                 <div className="mt-2.5 pt-2 border-t border-zinc-800">
                   <div className="text-lg font-black text-gymRed font-mono">
-                    -{third.kgLost.toFixed(1)} KG
+                    -{Number(third.kgLost).toFixed(3)} KG
                   </div>
                   <div className="text-xs font-bold text-zinc-200 font-mono mt-0.5">
                     3,000 AED

@@ -75,8 +75,16 @@ export default async function CheckinPage({ params }: CheckinPageProps) {
     }
   }
 
-  const day1WeighIn = user.weighIns.find((w) => w.type === "DAY_1") || null;
-  const finalWeighIn = user.weighIns.find((w) => w.type === "FINAL") || null;
+  const serializeWeighIn = (w: typeof user.weighIns[0] | undefined | null) => {
+    if (!w) return null;
+    return {
+      ...w,
+      weightKg: Number(w.weightKg),
+    };
+  };
+
+  const day1WeighIn = serializeWeighIn(user.weighIns.find((w) => w.type === "DAY_1"));
+  const finalWeighIn = serializeWeighIn(user.weighIns.find((w) => w.type === "FINAL"));
 
   return (
     <CheckinClient
@@ -87,6 +95,7 @@ export default async function CheckinPage({ params }: CheckinPageProps) {
         mobile: user.mobile,
         email: user.email,
         gender: user.gender,
+        dob: user.dob ? user.dob.toISOString() : null,
         branchLabel: user.registeredBranch.label,
         branchId: user.registeredBranchId,
         status: computedStatus,

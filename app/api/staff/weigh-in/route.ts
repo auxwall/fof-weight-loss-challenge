@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { userId, type, weightKg, signatureDataUrl, branchId, scalePhoto } = body;
+    const { userId, type, weightKg, signatureDataUrl, branchId, scalePhoto, emiratesIdPhoto } = body;
 
     if (!userId || !type || weightKg === undefined || weightKg === null) {
       return NextResponse.json(
@@ -23,7 +23,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const weightNum = parseFloat(weightKg);
+    const weightStr = String(weightKg).trim();
+    if (!/^\d+(\.\d{3})$/.test(weightStr)) {
+      return NextResponse.json(
+        {
+          error:
+            "Weight strictly requires exactly 3 decimal places (e.g. 88.123 kg). Formats like 88, 88.2, or 88.33 are not allowed.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const weightNum = parseFloat(weightStr);
     if (isNaN(weightNum) || weightNum <= 25 || weightNum > 350) {
       return NextResponse.json(
         { error: "Please enter a valid weight in kg (between 25 and 350 kg)." },
@@ -71,6 +82,13 @@ export async function POST(req: NextRequest) {
         );
       }
 
+      if (!signatureDataUrl) {
+        return NextResponse.json(
+          { error: "Digital signature is required to record Day-1 starting weigh-in." },
+          { status: 400 }
+        );
+      }
+
       const deadline = calculateDeadlineDubai(now);
 
       // Save scale photo proof if provided
@@ -87,6 +105,34 @@ export async function POST(req: NextRequest) {
         }
       }
 
+      // Save digital signature proof if provided
+      let savedSignatureUrl: string | null = null;
+      if (signatureDataUrl) {
+        try {
+          savedSignatureUrl = await saveNewImage({
+            base64Data: signatureDataUrl,
+            folder: "signatures",
+            fileName: `signature_day1_${user.id}_${Date.now()}`,
+          });
+        } catch (sigErr) {
+          console.error("Failed to save Day-1 digital signature image:", sigErr);
+        }
+      }
+
+      // Save Emirates ID photo proof if provided
+      let savedEmiratesIdPhotoUrl: string | null = null;
+      if (emiratesIdPhoto) {
+        try {
+          savedEmiratesIdPhotoUrl = await saveNewImage({
+            base64Data: emiratesIdPhoto,
+            folder: "emirates_ids",
+            fileName: `emirates_id_${user.id}_${Date.now()}`,
+          });
+        } catch (idErr) {
+          console.error("Failed to save Day-1 Emirates ID photo:", idErr);
+        }
+      }
+
       // Execute atomic transaction: create WeighIn and update User status
       const [weighIn, updatedUser] = await prisma.$transaction([
         prisma.weighIn.create({
@@ -97,8 +143,10 @@ export async function POST(req: NextRequest) {
             branchId: effectiveBranchId,
             loggedByStaffId: session.userId,
             photoUrl: scalePhotoUrl,
+            emiratesIdPhotoUrl: savedEmiratesIdPhotoUrl || emiratesIdPhoto || null,
+            signatureUrl: savedSignatureUrl || signatureDataUrl,
           },
-          include: { branch: true },
+          include: { branch: true, loggedByStaff: true },
         }),
         prisma.user.update({
           where: { id: user.id },
@@ -129,7 +177,10 @@ export async function POST(req: NextRequest) {
         success: true,
         message: "Day-1 weigh-in logged successfully. 30-day challenge clock started!",
         user: updatedUser,
-        weighIn,
+        weighIn: {
+          ...weighIn,
+          weightKg: Number(weighIn.weightKg),
+        },
       });
     }
 
@@ -144,7 +195,7 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // Strict Day 30 or Day 31 Return Window Validation
+      // Strict 30-Day Return Window Validation
       const windowInfo = getFinalWeighInWindow(user.day1Date, user.deadlineDate);
       if (windowInfo.status === "EXPIRED") {
         await prisma.user.update({
@@ -180,7 +231,7 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      const kgLost = parseFloat((day1Record.weightKg - weightNum).toFixed(1));
+      const kgLost = parseFloat((Number(day1Record.weightKg) - weightNum).toFixed(3));
 
       // Save scale photo proof if provided
       let scalePhotoUrl: string | null = null;
@@ -256,7 +307,7 @@ export async function POST(req: NextRequest) {
           mobile: user.mobile,
           email: user.email,
           branchName: finalWeighIn.branch.label,
-          day1WeightKg: day1Record.weightKg,
+          day1WeightKg: Number(day1Record.weightKg),
           day1Date: day1Record.createdAt,
           finalWeightKg: weightNum,
           finalDate: now,
@@ -276,7 +327,7 @@ export async function POST(req: NextRequest) {
             email: user.email,
             name: user.name,
             userId: user.id,
-            day1WeightKg: day1Record.weightKg,
+            day1WeightKg: Number(day1Record.weightKg),
             finalWeightKg: weightNum,
             kgLost: kgLost,
             pdfBytes: pdfBytes,
@@ -290,8 +341,12 @@ export async function POST(req: NextRequest) {
         success: true,
         message: "Final weigh-in successfully recorded and verified!",
         user: updatedUser,
+        weighIn: {
+          ...finalWeighIn,
+          weightKg: Number(finalWeighIn.weightKg),
+        },
         kgLost,
-        day1Weight: day1Record.weightKg,
+        day1Weight: Number(day1Record.weightKg),
         finalWeight: weightNum,
       });
     }

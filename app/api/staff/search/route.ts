@@ -95,8 +95,8 @@ function mapUserWithStatus(user: any) {
     branchLabel: user.registeredBranch?.label || "Unknown",
     branchId: user.registeredBranchId,
     status: currentStatus,
-    day1Weight: day1WeighIn ? day1WeighIn.weightKg : null,
-    finalWeight: finalWeighIn ? finalWeighIn.weightKg : null,
+    day1Weight: day1WeighIn ? Number(day1WeighIn.weightKg) : null,
+    finalWeight: finalWeighIn ? Number(finalWeighIn.weightKg) : null,
     deadlineDate: user.deadlineDate,
     daysRemaining: user.deadlineDate ? getDaysRemaining(user.deadlineDate) : null,
   };

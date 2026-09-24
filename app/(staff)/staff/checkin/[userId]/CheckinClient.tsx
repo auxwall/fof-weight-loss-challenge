@@ -8,12 +8,12 @@ import SignaturePad from "@/components/staff/SignaturePad";
 import ScalePhotoCapture from "@/components/staff/ScalePhotoCapture";
 import PhotoProofModal from "@/components/staff/PhotoProofModal";
 import { maskEmiratesId } from "@/lib/mask";
-import { formatDubai, getFinalWeighInWindow } from "@/lib/dayjs";
-import { ArrowLeft, Eye, EyeOff, Scale, Clock, CheckCircle2, AlertTriangle, FileCheck, Loader2, Award, Camera } from "lucide-react";
+import dayjs, { formatDubai, formatDateOnlyDubai, getFinalWeighInWindow, DUBAI_TZ } from "@/lib/dayjs";
+import { ArrowLeft, Eye, EyeOff, Scale, Clock, CheckCircle2, AlertTriangle, FileCheck, Loader2, Award, Camera, PenLine } from "lucide-react";
 
 interface Branch { id: string; name: string; label: string; }
-interface UserData { id: string; name: string; emiratesId: string; mobile: string; email: string; gender: string; branchLabel: string; branchId: string; status: "REGISTERED" | "ACTIVE" | "COMPLETED" | "DISQUALIFIED"; day1Date?: Date | string | null; deadlineDate: Date | string | null; }
-interface WeighInRecord { id: string; type: string; weightKg: number; createdAt: Date | string; photoUrl?: string | null; signatureUrl?: string | null; branch: { label: string }; loggedByStaff: { username: string; name?: string | null }; }
+interface UserData { id: string; name: string; emiratesId: string; mobile: string; email: string; gender: string; dob?: Date | string | null; branchLabel: string; branchId: string; status: "REGISTERED" | "ACTIVE" | "COMPLETED" | "DISQUALIFIED"; day1Date?: Date | string | null; deadlineDate: Date | string | null; }
+interface WeighInRecord { id: string; type: string; weightKg: number; createdAt: Date | string; photoUrl?: string | null; emiratesIdPhotoUrl?: string | null; signatureUrl?: string | null; branch: { label: string }; loggedByStaff: { username: string; name?: string | null }; }
 interface CheckinClientProps { user: UserData; day1WeighIn?: WeighInRecord | null; finalWeighIn: WeighInRecord | null; daysRemaining: { daysLeft: number; isExpired: boolean; label: string } | null; branches: Branch[]; staffBranchId?: string | null; staffName: string; }
 
 export default function CheckinClient({ user: initialUser, day1WeighIn: initialDay1, finalWeighIn: initialFinal, daysRemaining: initialDaysRemaining, branches, staffBranchId }: CheckinClientProps) {
@@ -28,7 +28,9 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
   const [weightInput, setWeightInput] = useState("");
   const [selectedBranchId, setSelectedBranchId] = useState(staffBranchId || user.branchId);
   const [signatureData, setSignatureData] = useState<string | null>(null);
+  const [signatureDataDay1, setSignatureDataDay1] = useState<string | null>(null);
   const [scalePhotoDay1, setScalePhotoDay1] = useState<string | null>(null);
+  const [emiratesIdPhotoDay1, setEmiratesIdPhotoDay1] = useState<string | null>(null);
   const [scalePhotoFinal, setScalePhotoFinal] = useState<string | null>(null);
   const [modalImage, setModalImage] = useState<{ url: string; title: string; subtitle?: string } | null>(null);
 
@@ -37,14 +39,14 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [day1JustRecorded, setDay1JustRecorded] = useState(false);
 
-  // Day 30/31 Final Weigh-in window validation
+  // 30-Day Final Weigh-in window validation
   const finalWindow = user.status === "ACTIVE" ? getFinalWeighInWindow(user.day1Date, user.deadlineDate) : null;
 
   // Live kg lost calculation for final weigh-in
   const parsedWeight = parseFloat(weightInput);
   const liveKgLost =
     day1WeighIn && !isNaN(parsedWeight)
-      ? parseFloat((day1WeighIn.weightKg - parsedWeight).toFixed(1))
+      ? parseFloat((Number(day1WeighIn.weightKg) - parsedWeight).toFixed(3))
       : null;
 
   // Handle Day-1 Submission
@@ -53,8 +55,24 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
     setError(null);
     setSuccessMessage(null);
 
+    const cleanWeight = weightInput.trim();
+    if (!/^\d+(\.\d{3})$/.test(cleanWeight)) {
+      setError("Starting weight strictly requires exactly 3 decimal places (e.g. 88.123 kg). Formats like 88, 88.2, or 88.33 are not allowed.");
+      return;
+    }
+
     if (!scalePhotoDay1) {
       setError("Please capture or upload a scale photo proof for Day-1.");
+      return;
+    }
+
+    if (!emiratesIdPhotoDay1) {
+      setError("Please capture or upload the Emirates ID photo proof for Day-1.");
+      return;
+    }
+
+    if (!signatureDataDay1) {
+      setError("Please have the participant sign in the signature pad and tap 'Lock In Signature' before submitting.");
       return;
     }
 
@@ -67,9 +85,11 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
         body: JSON.stringify({
           userId: user.id,
           type: "DAY_1",
-          weightKg: parseFloat(weightInput),
+          weightKg: cleanWeight,
           branchId: selectedBranchId,
           scalePhoto: scalePhotoDay1,
+          emiratesIdPhoto: emiratesIdPhotoDay1,
+          signatureDataUrl: signatureDataDay1,
         }),
       });
 
@@ -88,9 +108,11 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
       }));
       setDay1WeighIn(data.weighIn);
       setDay1JustRecorded(true);
-      setSuccessMessage(null);
+      setSuccessMessage("Day-1 weigh-in and participant signature recorded successfully! 30-day challenge clock started.");
       setWeightInput("");
       setScalePhotoDay1(null);
+      setEmiratesIdPhotoDay1(null);
+      setSignatureDataDay1(null);
     } catch {
       setError("Network error. Please try again.");
     } finally {
@@ -103,6 +125,12 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
     e.preventDefault();
     setError(null);
     setSuccessMessage(null);
+
+    const cleanWeight = weightInput.trim();
+    if (!/^\d+(\.\d{3})$/.test(cleanWeight)) {
+      setError("Final weight strictly requires exactly 3 decimal places (e.g. 79.123 kg). Formats like 88, 88.2, or 88.33 are not allowed.");
+      return;
+    }
 
     if (finalWindow && !finalWindow.isEligible) {
       setError(finalWindow.message);
@@ -128,7 +156,7 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
         body: JSON.stringify({
           userId: user.id,
           type: "FINAL",
-          weightKg: parseFloat(weightInput),
+          weightKg: cleanWeight,
           branchId: selectedBranchId,
           scalePhoto: scalePhotoFinal,
           signatureDataUrl: signatureData,
@@ -225,7 +253,7 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
             </div>
 
             <div>
-              <span className="text-[10px] text-zinc-400 uppercase block">Registered Branch</span>
+              <span className="text-[10px] text-zinc-400 uppercase block">Registered Club</span>
               <span className="text-zinc-200">{user.branchLabel}</span>
             </div>
 
@@ -233,6 +261,13 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
               <span className="text-[10px] text-zinc-400 uppercase block">Gender</span>
               <span className="text-zinc-200">{user.gender}</span>
             </div>
+
+            {user.dob && (
+              <div>
+                <span className="text-[10px] text-zinc-400 uppercase block">Date of Birth</span>
+                <span className="text-zinc-200">{formatDateOnlyDubai(user.dob)}</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -275,7 +310,7 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
               <div className="flex justify-between items-center py-1 border-b border-zinc-800/80 text-xs">
                 <span className="text-zinc-400">Recorded Weight:</span>
                 <span className="font-mono font-black text-white text-base">
-                  {day1WeighIn ? `${day1WeighIn.weightKg.toFixed(1)} kg` : "—"}
+                  {day1WeighIn ? `${Number(day1WeighIn.weightKg).toFixed(3)} kg` : "—"}
                 </span>
               </div>
               <div className="flex justify-between items-center py-1 border-b border-zinc-800/80 text-xs">
@@ -285,7 +320,7 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
                 </span>
               </div>
               <div className="flex justify-between items-center py-1 border-b border-zinc-800/80 text-xs">
-                <span className="text-zinc-400">Branch Logged:</span>
+                <span className="text-zinc-400">Club Logged:</span>
                 <span className="font-semibold text-zinc-200">
                   {day1WeighIn?.branch?.label || user.branchLabel}
                 </span>
@@ -297,14 +332,16 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
               <div className="flex justify-between items-center py-1 text-xs">
                 <span className="text-zinc-400">Return Deadline:</span>
                 <span className="font-semibold text-zinc-200">
-                  {formatDubai(user.deadlineDate, "DD MMM YYYY (hh:mm A)")}
+                  {user.day1Date
+                    ? dayjs(user.day1Date).tz(DUBAI_TZ).add(29, "day").format("DD MMM YYYY")
+                    : "—"}
                 </span>
               </div>
             </div>
 
             {/* Security Callout */}
             <div className="p-3.5 bg-zinc-950/80 rounded-xl border border-zinc-800/80 text-[11px] text-zinc-400 text-left leading-relaxed">
-              🔒 <strong className="text-zinc-300">Final weigh-in locked:</strong> Day 30 weigh-in fields will only become available when this participant returns to a branch at the end of their challenge.
+              🔒 <strong className="text-zinc-300">Final weigh-in locked:</strong> Day 30 weigh-in fields will only become available when this participant returns to a club at the end of their challenge.
             </div>
           </div>
         ) : (
@@ -320,7 +357,7 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
               </span>
               <h2 className="text-lg font-black uppercase text-white">RECORD DAY-1 START WEIGHT</h2>
               <p className="text-xs text-zinc-400 mt-1">
-                Recording Day-1 starts this participant&apos;s 31-day challenge window.
+                Recording Day-1 starts this participant&apos;s 30-day challenge window.
               </p>
             </div>
 
@@ -332,25 +369,27 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
                 <div className="relative">
                   <Scale className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
                   <input
-                    type="number"
-                    step="0.1"
-                    min="30"
-                    max="300"
+                    type="text"
+                    inputMode="decimal"
+                    pattern="^\d+(\.\d{3})$"
                     required
                     value={weightInput}
                     onChange={(e) => setWeightInput(e.target.value)}
-                    placeholder="e.g. 88.5"
+                    placeholder="e.g. 88.123"
                     className="w-full bg-zinc-900 border border-zinc-700/80 rounded-xl pl-10 pr-12 py-3 text-lg font-mono font-bold text-white placeholder-zinc-500 focus:outline-none focus:border-gymRed"
                   />
                   <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-400 uppercase">
                     KG
                   </span>
                 </div>
+                <span className="text-[11px] text-zinc-400 mt-1 block">
+                  Strictly 3 decimal places required (e.g. 88.123).
+                </span>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-1.5">
-                  Weigh-In Branch
+                  Weigh-In Club
                 </label>
                 <select
                   value={selectedBranchId}
@@ -372,9 +411,39 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
                 label="Day-1 Scale Photo"
               />
 
+              {/* Day-1 Emirates ID Photo Proof */}
+              <ScalePhotoCapture
+                value={emiratesIdPhotoDay1}
+                onChange={setEmiratesIdPhotoDay1}
+                label="Emirates ID Photo"
+              />
+
+              {/* Day-1 Digital Signature Pad */}
+              <div>
+                <SignaturePad
+                  onSave={(dataUrl) => {
+                    setSignatureDataDay1(dataUrl);
+                    setSuccessMessage("Signature captured! Tap submit below to record Day-1 weight.");
+                  }}
+                  onClear={() => setSignatureDataDay1(null)}
+                />
+                {signatureDataDay1 && (
+                  <div className="mt-2.5 flex flex-col items-center gap-1.5">
+                    <div className="p-1 bg-white rounded-lg border border-zinc-300 shadow-sm max-w-[220px]">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={signatureDataDay1} alt="Day-1 Signature" className="h-10 w-auto object-contain mx-auto" />
+                    </div>
+                    <div className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>Signature locked in & ready</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <button
                 type="submit"
-                disabled={loading || !weightInput || !scalePhotoDay1}
+                disabled={loading || !weightInput || !scalePhotoDay1 || !emiratesIdPhotoDay1 || !signatureDataDay1}
                 className="w-full py-3.5 rounded-xl bg-gymRed hover:bg-gymRed-hover text-white font-bold text-xs tracking-wider uppercase transition-all shadow-red-glow flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {loading ? (
@@ -385,7 +454,7 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
                 ) : (
                   <>
                     <CheckCircle2 className="w-4 h-4" />
-                    <span>Confirm Day-1 & Start 31-Day Clock</span>
+                    <span>Confirm Day-1 & Start 30-Day Clock</span>
                   </>
                 )}
               </button>
@@ -414,7 +483,7 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
                 <div>
                   <span className="text-[10px] text-zinc-400 uppercase block">Day-1 Start Weight</span>
                   <span className="text-base font-black text-white font-mono">
-                    {day1WeighIn ? `${day1WeighIn.weightKg.toFixed(1)} kg` : "—"}
+                    {day1WeighIn ? `${Number(day1WeighIn.weightKg).toFixed(3)} kg` : "—"}
                   </span>
                   <span className="text-[10px] text-zinc-400 block">
                     {formatDubai(user.day1Date, "DD MMM YYYY")}
@@ -435,22 +504,56 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
                 </div>
               </div>
 
-              {day1WeighIn?.photoUrl && (
-                <button
-                  type="button"
-                  onClick={() =>
-                    setModalImage({
-                      url: day1WeighIn.photoUrl!,
-                      title: "Day-1 Scale Photo",
-                      subtitle: `${day1WeighIn.weightKg} kg · ${formatDubai(user.day1Date)}`,
-                    })
-                  }
-                  className="w-full py-1.5 px-3 rounded-lg bg-zinc-800/80 hover:bg-zinc-800 border border-zinc-700/60 text-zinc-300 text-[11px] font-semibold flex items-center justify-center gap-1.5 transition-colors"
-                >
-                  <Camera className="w-3.5 h-3.5 text-gymRed" />
-                  <span>View Day-1 Scale Photo</span>
-                </button>
-              )}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+                {day1WeighIn?.photoUrl && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setModalImage({
+                        url: day1WeighIn.photoUrl!,
+                        title: "Day-1 Scale Photo",
+                        subtitle: `${Number(day1WeighIn.weightKg).toFixed(3)} kg · ${formatDubai(user.day1Date)}`,
+                      })
+                    }
+                    className="w-full py-1.5 px-2 rounded-lg bg-zinc-800/80 hover:bg-zinc-800 border border-zinc-700/60 text-zinc-300 text-[11px] font-semibold flex items-center justify-center gap-1.5 transition-colors"
+                  >
+                    <Camera className="w-3.5 h-3.5 text-gymRed" />
+                    <span>Scale</span>
+                  </button>
+                )}
+                {day1WeighIn?.emiratesIdPhotoUrl && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setModalImage({
+                        url: day1WeighIn.emiratesIdPhotoUrl!,
+                        title: "Emirates ID Photo",
+                        subtitle: `${user.name} · Day-1 Verified`,
+                      })
+                    }
+                    className="w-full py-1.5 px-2 rounded-lg bg-zinc-800/80 hover:bg-zinc-800 border border-zinc-700/60 text-zinc-300 text-[11px] font-semibold flex items-center justify-center gap-1.5 transition-colors"
+                  >
+                    <Eye className="w-3.5 h-3.5 text-blue-400" />
+                    <span>Emirates ID</span>
+                  </button>
+                )}
+                {day1WeighIn?.signatureUrl && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setModalImage({
+                        url: day1WeighIn.signatureUrl!,
+                        title: "Day-1 Participant Signature",
+                        subtitle: `Signed at ${day1WeighIn.branch?.label || "Club"} · ${formatDubai(day1WeighIn.createdAt, "DD MMM YYYY, hh:mm A")}`,
+                      })
+                    }
+                    className="w-full py-1.5 px-2 rounded-lg bg-zinc-800/80 hover:bg-zinc-800 border border-zinc-700/60 text-zinc-300 text-[11px] font-semibold flex items-center justify-center gap-1.5 transition-colors"
+                  >
+                    <PenLine className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Signature</span>
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Final Weigh-in Window Status Banner */}
@@ -461,12 +564,12 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
                   <span>Final Weigh-In Window Not Yet Open</span>
                 </div>
                 <p className="text-xs text-zinc-300 leading-relaxed">
-                  Participant is currently on <strong className="text-white">Day {finalWindow.challengeDay}</strong> of the 30-day challenge. Final weigh-in can only be recorded on <strong className="text-amber-400">Day 30 or Day 31</strong>.
+                  Participant is currently on <strong className="text-white">Day {finalWindow.challengeDay}</strong> of the 30-day challenge. Final weigh-in can only be recorded on <strong className="text-amber-400">Day 30</strong>.
                 </p>
                 <div className="p-3 rounded-lg bg-black/50 border border-amber-500/20 text-xs text-zinc-400 space-y-1">
                   <div className="text-zinc-200">
-                    <span className="font-semibold">Eligible Window:</span>{" "}
-                    <strong className="text-amber-300">{finalWindow.day30Date} – {finalWindow.day31Date}</strong>
+                    <span className="font-semibold">Eligible Date:</span>{" "}
+                    <strong className="text-amber-300">{finalWindow.day30Date}</strong>
                   </div>
                   <div className="text-[11px] text-zinc-400 pt-0.5">
                     Please advise the participant to return on Day 30 to officially log their final weight.
@@ -479,8 +582,8 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
               <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-left flex items-center gap-2.5 text-xs text-emerald-300">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                 <div>
-                  <span className="font-bold text-white block">Final Weigh-In Window Open (Day {finalWindow.challengeDay} of 30/31)</span>
-                  <span className="text-[11px] text-zinc-300">Eligible window: {finalWindow.day30Date} – {finalWindow.day31Date}</span>
+                  <span className="font-bold text-white block">Final Weigh-In Window Open (Day {finalWindow.challengeDay} of 30)</span>
+                  <span className="text-[11px] text-zinc-300">Eligible date: {finalWindow.day30Date}</span>
                 </div>
               </div>
             )}
@@ -494,25 +597,27 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
                 <div className="relative">
                   <Scale className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
                   <input
-                    type="number"
-                    step="0.1"
-                    min="30"
-                    max="300"
+                    type="text"
+                    inputMode="decimal"
+                    pattern="^\d+(\.\d{3})$"
                     required
                     value={weightInput}
                     onChange={(e) => setWeightInput(e.target.value)}
-                    placeholder="e.g. 79.2"
+                    placeholder="e.g. 79.123"
                     className="w-full bg-zinc-900 border border-zinc-700/80 rounded-xl pl-10 pr-12 py-3 text-lg font-mono font-bold text-white placeholder-zinc-500 focus:outline-none focus:border-gymRed"
                   />
                   <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-zinc-400 uppercase">
                     KG
                   </span>
                 </div>
+                <span className="text-[11px] text-zinc-400 mt-1 block">
+                  Strictly 3 decimal places required (e.g. 79.123).
+                </span>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-1.5">
-                  Weigh-In Branch
+                  Weigh-In Club
                 </label>
                 <select
                   value={selectedBranchId}
@@ -536,7 +641,7 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
                       liveKgLost > 0 ? "text-gymRed" : "text-zinc-300"
                     }`}
                   >
-                    {liveKgLost > 0 ? `-${liveKgLost.toFixed(1)} kg` : `${liveKgLost.toFixed(1)} kg`}
+                    {liveKgLost > 0 ? `-${liveKgLost.toFixed(3)} kg` : `${liveKgLost.toFixed(3)} kg`}
                   </span>
                 </div>
               )}
@@ -558,9 +663,15 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
                   onClear={() => setSignatureData(null)}
                 />
                 {signatureData && (
-                  <div className="mt-2 text-center text-[11px] text-emerald-400 font-semibold flex items-center justify-center gap-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Signature locked in & ready</span>
+                  <div className="mt-2.5 flex flex-col items-center gap-1.5">
+                    <div className="p-1 bg-white rounded-lg border border-zinc-300 shadow-sm max-w-[220px]">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={signatureData} alt="Final Signature" className="h-10 w-auto object-contain mx-auto" />
+                    </div>
+                    <div className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>Signature locked in & ready</span>
+                    </div>
                   </div>
                 )}
               </div>
@@ -611,7 +722,7 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
               <div>
                 <span className="text-[10px] text-zinc-400 uppercase block">Day-1</span>
                 <span className="font-mono text-sm font-bold text-white block">
-                  {day1WeighIn ? `${day1WeighIn.weightKg.toFixed(1)} kg` : "—"}
+                  {day1WeighIn ? `${Number(day1WeighIn.weightKg).toFixed(3)} kg` : "—"}
                 </span>
                 {day1WeighIn && (
                   <span className="text-[9px] text-zinc-500 block leading-tight mt-0.5">
@@ -624,7 +735,7 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
               <div>
                 <span className="text-[10px] text-zinc-400 uppercase block">Final</span>
                 <span className="font-mono text-sm font-bold text-white block">
-                  {finalWeighIn ? `${finalWeighIn.weightKg.toFixed(1)} kg` : "—"}
+                  {finalWeighIn ? `${Number(finalWeighIn.weightKg).toFixed(3)} kg` : "—"}
                 </span>
                 {finalWeighIn && (
                   <span className="text-[9px] text-zinc-500 block leading-tight mt-0.5">
@@ -638,7 +749,7 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
                 <span className="text-[10px] text-gymRed uppercase font-bold block">Lost</span>
                 <span className="font-mono text-sm font-black text-gymRed block">
                   {day1WeighIn && finalWeighIn
-                    ? `-${(day1WeighIn.weightKg - finalWeighIn.weightKg).toFixed(1)} kg`
+                    ? `-${(Number(day1WeighIn.weightKg) - Number(finalWeighIn.weightKg)).toFixed(3)} kg`
                     : "—"}
                 </span>
                 <span className="text-[9px] text-zinc-500 block mt-0.5">
@@ -660,7 +771,7 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
                       setModalImage({
                         url: day1WeighIn.photoUrl!,
                         title: "Day-1 Scale Photo",
-                        subtitle: `${day1WeighIn.weightKg} kg · ${formatDubai(day1WeighIn.createdAt, "DD MMM YYYY, hh:mm A")}`,
+                        subtitle: `${Number(day1WeighIn.weightKg).toFixed(3)} kg · ${formatDubai(day1WeighIn.createdAt, "DD MMM YYYY, hh:mm A")}`,
                       })
                     }
                     className="p-2.5 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-left transition-colors flex items-center gap-2"
@@ -680,6 +791,28 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
                   </div>
                 )}
 
+                {day1WeighIn?.emiratesIdPhotoUrl && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setModalImage({
+                        url: day1WeighIn.emiratesIdPhotoUrl!,
+                        title: "Emirates ID Photo",
+                        subtitle: `${user.name} · Day-1 Verified Proof`,
+                      })
+                    }
+                    className="p-2.5 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-left transition-colors flex items-center gap-2"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-blue-500/15 text-blue-400 flex items-center justify-center shrink-0">
+                      <Eye className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[11px] font-bold text-white leading-none">Emirates ID</span>
+                      <span className="text-[10px] text-zinc-400 leading-none">View ID</span>
+                    </div>
+                  </button>
+                )}
+
                 {finalWeighIn?.photoUrl ? (
                   <button
                     type="button"
@@ -687,7 +820,7 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
                       setModalImage({
                         url: finalWeighIn.photoUrl!,
                         title: "Final Scale Photo",
-                        subtitle: `${finalWeighIn.weightKg} kg · ${formatDubai(finalWeighIn.createdAt, "DD MMM YYYY, hh:mm A")}`,
+                        subtitle: `${Number(finalWeighIn.weightKg).toFixed(3)} kg · ${formatDubai(finalWeighIn.createdAt, "DD MMM YYYY, hh:mm A")}`,
                       })
                     }
                     className="p-2.5 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-left transition-colors flex items-center gap-2"
@@ -709,54 +842,104 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
               </div>
             </div>
 
-            {/* Verification Signature Preview */}
-            {finalWeighIn?.signatureUrl && (
-              <div className="bg-zinc-950 p-3 rounded-xl border border-zinc-800 text-left space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] uppercase font-bold text-zinc-400">
-                    Captured Participant Signature
-                  </span>
-                  <button
-                    type="button"
+            {/* Verification Signatures Preview */}
+            <div className="space-y-3">
+              {day1WeighIn?.signatureUrl && (
+                <div className="bg-zinc-950 p-3 rounded-xl border border-zinc-800 text-left space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] uppercase font-bold text-zinc-400">
+                      Day-1 Starting Signature
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setModalImage({
+                          url: day1WeighIn.signatureUrl!,
+                          title: "Day-1 Participant Signature",
+                          subtitle: `Signed at ${day1WeighIn.branch?.label || "Club"} · ${formatDubai(day1WeighIn.createdAt, "DD MMM YYYY, hh:mm A")}`,
+                        })
+                      }
+                      className="text-[10px] font-semibold text-gymRed hover:underline"
+                    >
+                      Enlarge
+                    </button>
+                  </div>
+                  <div
+                    onClick={() =>
+                      setModalImage({
+                        url: day1WeighIn.signatureUrl!,
+                        title: "Day-1 Participant Signature",
+                        subtitle: `Signed at ${day1WeighIn.branch?.label || "Club"} · ${formatDubai(day1WeighIn.createdAt, "DD MMM YYYY, hh:mm A")}`,
+                      })
+                    }
+                    className="h-16 relative bg-zinc-900/60 rounded-lg flex items-center justify-center overflow-hidden cursor-pointer hover:bg-zinc-900 transition-colors"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={day1WeighIn.signatureUrl}
+                      alt="Day-1 Participant Signature"
+                      className="max-h-12 w-auto max-w-[80%] object-contain"
+                    />
+                  </div>
+                  <div className="flex items-center justify-between text-[10px] text-zinc-400 pt-0.5">
+                    <span>
+                      Logged by: {day1WeighIn.loggedByStaff?.name || day1WeighIn.loggedByStaff?.username}
+                    </span>
+                    <span className="font-mono text-zinc-500">
+                      {formatDubai(day1WeighIn.createdAt, "DD MMM YYYY · hh:mm A")}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {finalWeighIn?.signatureUrl && (
+                <div className="bg-zinc-950 p-3 rounded-xl border border-zinc-800 text-left space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] uppercase font-bold text-zinc-400">
+                      Final Weigh-In Signature
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setModalImage({
+                          url: finalWeighIn.signatureUrl!,
+                          title: "Final Participant Digital Signature",
+                          subtitle: `Signed at ${finalWeighIn.branch?.label || "Club"} · ${formatDubai(finalWeighIn.createdAt, "DD MMM YYYY, hh:mm A")}`,
+                        })
+                      }
+                      className="text-[10px] font-semibold text-gymRed hover:underline"
+                    >
+                      Enlarge
+                    </button>
+                  </div>
+                  <div
                     onClick={() =>
                       setModalImage({
                         url: finalWeighIn.signatureUrl!,
-                        title: "Participant Digital Signature",
-                        subtitle: `Signed at ${finalWeighIn.branch?.label || "Branch"} · ${formatDubai(finalWeighIn.createdAt, "DD MMM YYYY, hh:mm A")}`,
+                        title: "Final Participant Digital Signature",
+                        subtitle: `Signed at ${finalWeighIn.branch?.label || "Club"} · ${formatDubai(finalWeighIn.createdAt, "DD MMM YYYY, hh:mm A")}`,
                       })
                     }
-                    className="text-[10px] font-semibold text-gymRed hover:underline"
+                    className="h-16 relative bg-zinc-900/60 rounded-lg flex items-center justify-center overflow-hidden cursor-pointer hover:bg-zinc-900 transition-colors"
                   >
-                    Enlarge
-                  </button>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={finalWeighIn.signatureUrl}
+                      alt="Final Participant Signature"
+                      className="max-h-12 w-auto max-w-[80%] object-contain"
+                    />
+                  </div>
+                  <div className="flex items-center justify-between text-[10px] text-zinc-400 pt-0.5">
+                    <span>
+                      Verified by: {finalWeighIn.loggedByStaff?.name || finalWeighIn.loggedByStaff?.username}
+                    </span>
+                    <span className="font-mono text-zinc-500">
+                      {formatDubai(finalWeighIn.createdAt, "DD MMM YYYY · hh:mm A")}
+                    </span>
+                  </div>
                 </div>
-                <div
-                  onClick={() =>
-                    setModalImage({
-                      url: finalWeighIn.signatureUrl!,
-                      title: "Participant Digital Signature",
-                      subtitle: `Signed at ${finalWeighIn.branch?.label || "Branch"} · ${formatDubai(finalWeighIn.createdAt, "DD MMM YYYY, hh:mm A")}`,
-                    })
-                  }
-                  className="h-16 relative bg-zinc-900/60 rounded-lg flex items-center justify-center overflow-hidden cursor-pointer hover:bg-zinc-900 transition-colors"
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={finalWeighIn.signatureUrl}
-                    alt="Participant Signature"
-                    className="max-h-12 w-auto max-w-[80%] object-contain"
-                  />
-                </div>
-                <div className="flex items-center justify-between text-[10px] text-zinc-400 pt-0.5">
-                  <span>
-                    Verified by: {finalWeighIn.loggedByStaff?.name || finalWeighIn.loggedByStaff?.username}
-                  </span>
-                  <span className="font-mono text-zinc-500">
-                    {formatDubai(finalWeighIn.createdAt, "DD MMM YYYY · hh:mm A")}
-                  </span>
-                </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         )}
 
@@ -771,7 +954,7 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
 
                 <h2 className="text-lg font-black uppercase text-red-400">PARTICIPANT DISQUALIFIED</h2>
                 <p className="text-xs text-zinc-300 leading-relaxed max-w-xs mx-auto">
-                  This participant exceeded the 31-day grace period without completing their final weigh-in.
+                  This participant exceeded the 30-day period without completing their final weigh-in.
                 </p>
 
                 <div className="text-xs text-zinc-400 pt-2 border-t border-red-900/30">

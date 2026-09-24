@@ -1,4 +1,4 @@
-import { PDFDocument, rgb, StandardFonts, PDFFont } from "pdf-lib";
+import { PDFDocument, rgb, StandardFonts, PDFFont, degrees } from "pdf-lib";
 import fs from "fs";
 import path from "path";
 import { formatDubai } from "./dayjs";
@@ -170,11 +170,11 @@ export async function generateChallengePdf(data: ChallengePdfData): Promise<Uint
   cursorY -= 44;
 
   // ---- 4. citation paragraph (centered in Serif Italic with proper spacing)
-  const kgLostDisplay = `${Math.abs(data.kgLost).toFixed(1)} kg`;
+  const kgLostDisplay = `${Math.abs(Number(data.kgLost)).toFixed(3)} kg`;
   const paragraph =
     `has successfully completed the Gym Weight Loss Challenge at ${data.branchName}, ` +
-    `achieving a verified total weight loss of ${kgLostDisplay} — from ${data.day1WeightKg.toFixed(1)} kg ` +
-    `on ${formatDubai(data.day1Date, "DD MMM YYYY")} to ${data.finalWeightKg.toFixed(1)} kg on ${formatDubai(
+    `achieving a verified total weight loss of ${kgLostDisplay} — from ${Number(data.day1WeightKg).toFixed(3)} kg ` +
+    `on ${formatDubai(data.day1Date, "DD MMM YYYY")} to ${Number(data.finalWeightKg).toFixed(3)} kg on ${formatDubai(
       data.finalDate,
       "DD MMM YYYY"
     )}.`;
@@ -185,30 +185,63 @@ export async function generateChallengePdf(data: ChallengePdfData): Promise<Uint
   }
 
   // ---- 5. verification / signatories (balanced horizontal baselines) -----
-  const lineY = 120;
+  const lineY = 100;
   const colHalfW = 68; // 136pt line width
-  const leftColX = 330;
-  const rightColX = 566;
+  const leftColX = 300;
+  const rightColX = 596;
 
+
+  // Official Stamp (Top of Right Signatory)
+  const stampPath = path.join(process.cwd(), "public", "stamp.png");
+  if (fs.existsSync(stampPath)) {
+    try {
+      const stampBytes = fs.readFileSync(stampPath);
+      const stampImage = await pdfDoc.embedPng(stampBytes);
+      const stampW = 160;
+      const stampH = (stampW / stampImage.width) * stampImage.height;
+
+      // Slight authentic stamp rotation angle (-4 degrees)
+      const angleDeg = 8;
+      const angleRad = (angleDeg * Math.PI) / 180;
+
+      // Center of the stamp above the signatory baseline
+      const centerX = rightColX;
+      const centerY = lineY + 6 + stampH / 2;
+
+      // Pivot rotation around center so the stamp stays centered
+      const drawX = centerX - (stampW / 2) * Math.cos(angleRad) + (stampH / 2) * Math.sin(angleRad);
+      const drawY = centerY - (stampW / 2) * Math.sin(angleRad) - (stampH / 2) * Math.cos(angleRad);
+
+      page.drawImage(stampImage, {
+        x: drawX,
+        y: drawY,
+        width: stampW,
+        height: stampH,
+        rotate: degrees(angleDeg),
+      });
+    } catch (err) {
+      console.error("Failed to embed stamp in PDF:", err);
+    }
+  }
+
+  drawCentered(formatDubai(new Date(), "DD MMM YYYY"), leftColX, lineY + 10, 10.5, fontBold, textDark);
   // Left Signatory / Date
   page.drawLine({
     start: { x: leftColX - colHalfW, y: lineY },
     end: { x: leftColX + colHalfW, y: lineY },
-    thickness: 0.9,
+    thickness: 0.5,
     color: textDark,
   });
-  drawCentered(formatDubai(data.finalDate, "DD MMM YYYY"), leftColX, lineY - 16, 10.5, fontBold, textDark);
-  drawCentered("Verified Date", leftColX, lineY - 30, 8.5, fontRegular, textMuted);
+  drawCentered("Date", leftColX, lineY - 16, 10.5, fontBold, textDark);
 
   // Right Signatory / Branch
   page.drawLine({
     start: { x: rightColX - colHalfW, y: lineY },
     end: { x: rightColX + colHalfW, y: lineY },
-    thickness: 0.9,
+    thickness: 0.5,
     color: textDark,
   });
-  drawCentered(data.branchName.toUpperCase(), rightColX, lineY - 16, 10.5, fontBold, textDark);
-  drawCentered("Official Branch", rightColX, lineY - 30, 8.5, fontRegular, textMuted);
+  drawCentered("Authorized club signature", rightColX, lineY - 16, 9.5, fontBold, textDark);
 
   // Discreet official footer
   drawCentered(

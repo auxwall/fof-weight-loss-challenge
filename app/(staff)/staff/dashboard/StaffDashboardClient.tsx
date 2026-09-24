@@ -273,7 +273,7 @@ export default function StaffDashboardClient({
                 onChange={(e) => handleBranchChange(e.target.value)}
                 className="w-full bg-zinc-900 border border-zinc-700/80 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-gymRed"
               >
-                <option value="ALL">All Branches</option>
+                <option value="ALL">All Clubs</option>
                 {branches.map((b) => (
                   <option key={b.id} value={b.id}>
                     {b.label}
@@ -333,7 +333,7 @@ export default function StaffDashboardClient({
                   <th className="p-3 sm:p-3.5 font-semibold">Participant</th>
                   <th className="p-3 sm:p-3.5 font-semibold">Emirates ID</th>
                   <th className="p-3 sm:p-3.5 font-semibold">Mobile & Email</th>
-                  <th className="p-3 sm:p-3.5 font-semibold">Branch</th>
+                  <th className="p-3 sm:p-3.5 font-semibold">Club</th>
                   <th className="p-3 sm:p-3.5 font-semibold">Status</th>
                   <th className="p-3 sm:p-3.5 font-semibold text-center">Day-1 Weight</th>
                   <th className="p-3 sm:p-3.5 font-semibold text-center">Final Weight</th>
@@ -410,12 +410,12 @@ export default function StaffDashboardClient({
 
                         {/* Day-1 Weight */}
                         <td className="p-3 sm:p-3.5 text-center font-mono font-semibold text-zinc-200">
-                          {u.day1Weight !== null ? `${u.day1Weight.toFixed(1)} kg` : "—"}
+                          {u.day1Weight !== null ? `${Number(u.day1Weight).toFixed(3)} kg` : "—"}
                         </td>
 
                         {/* Final Weight */}
                         <td className="p-3 sm:p-3.5 text-center font-mono font-semibold text-zinc-200">
-                          {u.finalWeight !== null ? `${u.finalWeight.toFixed(1)} kg` : "—"}
+                          {u.finalWeight !== null ? `${Number(u.finalWeight).toFixed(3)} kg` : "—"}
                         </td>
 
                         {/* Window / Days Remaining */}

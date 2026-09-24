@@ -68,6 +68,7 @@ model User {
   mobile             String          @unique
   email              String          @unique
   gender             Gender
+  dob                DateTime?       // Date of Birth
   registeredBranchId String
   registeredBranch   Branch          @relation("RegisteredBranch", fields: [registeredBranchId], references: [id])
 
@@ -90,14 +91,15 @@ model WeighIn {
   user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   type            WeighInType // DAY_1 or FINAL
-  weightKg        Float
+  weightKg        Decimal     @db.Decimal(7, 3)
   branchId        String
   branch          Branch      @relation(fields: [branchId], references: [id])
   loggedByStaffId String
   loggedByStaff   Staff       @relation("LoggedByStaff", fields: [loggedByStaffId], references: [id])
 
-  photoUrl        String?     // URL path to scale weight photo proof
-  signatureUrl    String?     // URL path to participant digital signature image
+  photoUrl           String?     // URL path to scale weight photo proof
+  emiratesIdPhotoUrl String?     // URL path to Emirates ID photo proof
+  signatureUrl       String?     // URL path to participant digital signature image
   pdfUrl          String?     // generated certificate file reference
 
   createdAt       DateTime    @default(now())
@@ -119,7 +121,7 @@ model Winner {
   id         String   @id @default(cuid())
   userId     String   @unique
   position   Int      // 1, 2, 3
-  kgLost     Float
+  kgLost     Decimal  @db.Decimal(7, 3)
   prizeAed   Int
   selectedAt DateTime @default(now())
 

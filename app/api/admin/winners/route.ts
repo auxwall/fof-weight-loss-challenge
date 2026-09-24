@@ -46,15 +46,15 @@ export async function GET() {
 
         if (!day1 || !finalW) return null;
 
-        const kgLost = parseFloat((day1.weightKg - finalW.weightKg).toFixed(1));
+        const kgLost = parseFloat((Number(day1.weightKg) - Number(finalW.weightKg)).toFixed(3));
         return {
           userId: u.id,
           name: u.name,
           mobile: u.mobile,
           gender: u.gender,
           branchLabel: u.registeredBranch.label,
-          day1Weight: day1.weightKg,
-          finalWeight: finalW.weightKg,
+          day1Weight: Number(day1.weightKg),
+          finalWeight: Number(finalW.weightKg),
           kgLost,
         };
       })
@@ -71,10 +71,10 @@ export async function GET() {
         userId: w.userId,
         name: w.user.name,
         prizeAed: w.prizeAed,
-        kgLost: w.kgLost,
+        kgLost: Number(w.kgLost),
         branchLabel: w.user.registeredBranch.label,
-        day1Weight: day1?.weightKg || null,
-        finalWeight: finalW?.weightKg || null,
+        day1Weight: day1 ? Number(day1.weightKg) : null,
+        finalWeight: finalW ? Number(finalW.weightKg) : null,
       };
     }
 
@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
     }
 
     const prizeLookup: Record<number, number> = {
-      1: 15000,
+      1: 10000,
       2: 5000,
       3: 3000,
     };
@@ -123,7 +123,7 @@ export async function POST(req: NextRequest) {
 
       const day1 = user.weighIns.find((w) => w.type === "DAY_1");
       const finalW = user.weighIns.find((w) => w.type === "FINAL");
-      const kgLost = day1 && finalW ? parseFloat((day1.weightKg - finalW.weightKg).toFixed(1)) : 0;
+      const kgLost = day1 && finalW ? parseFloat((Number(day1.weightKg) - Number(finalW.weightKg)).toFixed(3)) : 0;
 
       // Delete existing winner in this position or for this user to ensure uniqueness
       await prisma.winner.deleteMany({

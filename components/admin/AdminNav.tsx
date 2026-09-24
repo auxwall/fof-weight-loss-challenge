@@ -20,7 +20,7 @@ export default function AdminNav() {
   const navItems = [
     { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
     { label: "Settings", href: "/admin/settings", icon: Settings },
-    { label: "Staff & Branches", href: "/admin/staff", icon: UserCheck },
+    { label: "Staff & Clubs", href: "/admin/staff", icon: UserCheck },
     { label: "Participants", href: "/admin/users", icon: Users },
     { label: "Winners & Reveal", href: "/admin/winners", icon: Trophy, highlight: true },
   ];

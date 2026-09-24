@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { User, CreditCard, Phone, Mail, Building2, AlertCircle, Loader2, ArrowRight, ChevronDown } from "lucide-react";
+import { User, CreditCard, Phone, Mail, Building2, AlertCircle, Loader2, ArrowRight, ChevronDown, Calendar } from "lucide-react";
+import dayjs from "dayjs";
 import { RegisterSchema, formatEmiratesId } from "@/lib/validation";
 
 interface Branch { id: string; name: string; label: string; }
@@ -13,7 +14,7 @@ interface RegisterFormProps { branches: Branch[]; }
 export default function RegisterForm({ branches }: RegisterFormProps) {
   const router = useRouter();
 
-  const [formData, setFormData] = useState({ name: "", emiratesId: "", mobile: "", email: "", gender: "MALE", branchId: "", termsAccepted: false});
+  const [formData, setFormData] = useState({ name: "", emiratesId: "", dob: "", mobile: "", email: "", gender: "MALE", branchId: "", termsAccepted: false});
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -135,6 +136,53 @@ export default function RegisterForm({ branches }: RegisterFormProps) {
         )}
       </div>
 
+      {/* Date of Birth */}
+      <div>
+        <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-1.5">
+          Date of Birth <span className="text-gymRed">*</span>
+        </label>
+        <div
+          className={`relative w-full bg-zinc-900 border rounded-xl pl-10 pr-3.5 py-3 flex items-center transition-all cursor-pointer ${
+            fieldErrors.dob
+              ? "border-gymRed ring-1 ring-gymRed"
+              : "border-zinc-700/80 focus-within:border-yellow-600/50 focus-within:ring-0.1 focus-within:ring-gymRed"
+          }`}
+        >
+          <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
+          <span
+            className={`text-sm select-none truncate ${
+              formData.dob ? "text-white font-medium" : "text-zinc-500"
+            }`}
+          >
+            {formData.dob
+              ? dayjs(formData.dob).isValid()
+                ? dayjs(formData.dob).format("DD MMM YYYY")
+                : formData.dob
+              : "Select Date of Birth"}
+          </span>
+          <ChevronDown className="ml-auto w-4 h-4 text-zinc-500 pointer-events-none shrink-0" />
+
+          {/* Native date picker overlay that captures tap/click across the entire container */}
+          <input
+            type="date"
+            name="dob"
+            required
+            max={new Date().toISOString().split("T")[0]}
+            value={formData.dob}
+            onChange={handleChange}
+            onClick={(e) => {
+              try {
+                (e.target as HTMLInputElement & { showPicker?: () => void }).showPicker?.();
+              } catch {}
+            }}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 text-base"
+          />
+        </div>
+        {fieldErrors.dob && (
+          <p className="text-[11px] text-gymRed mt-1 font-medium">{fieldErrors.dob}</p>
+        )}
+      </div>
+
       {/* Mobile Number */}
       <div>
         <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-1.5">Mobile Number <span className="text-gymRed">*</span></label>
@@ -177,11 +225,11 @@ export default function RegisterForm({ branches }: RegisterFormProps) {
 
       {/* Primary Branch Selection */}
       <div>
-        <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-1.5">Select Branch <span className="text-gymRed">*</span></label>
+        <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-1.5">Select Club <span className="text-gymRed">*</span></label>
         <div className="relative">
           <Building2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
           <select name="branchId" required value={formData.branchId} onChange={handleChange} className={`w-full bg-zinc-900 border rounded-xl pl-10 pr-10 py-3 text-sm focus:outline-none transition-all appearance-none cursor-pointer ${ fieldErrors.branchId ? "border-gymRed ring-1 ring-gymRed" : "border-zinc-700/80 focus:border-yellow-600/50 focus:ring-0.1 focus:ring-gymRed" } ${formData.branchId ? "text-white font-medium" : "text-zinc-500"}`}>
-            <option value="" disabled className="bg-zinc-900 text-zinc-500">Choose branch</option>
+            <option value="" disabled className="bg-zinc-900 text-zinc-500">Choose club</option>
             {branches.map((b) => (
               <option key={b.id} value={b.id} className="bg-zinc-900 text-white"> {b.label} </option>
             ))}
@@ -191,7 +239,7 @@ export default function RegisterForm({ branches }: RegisterFormProps) {
         {fieldErrors.branchId ? (
           <p className="text-[11px] text-gymRed mt-1 font-medium">{fieldErrors.branchId}</p>
         ) : (
-          <span className="text-[10px] text-zinc-400 mt-1 block">Cross-branch visits allowed for weigh-ins.</span>
+          <span className="text-[10px] text-zinc-400 mt-1 block">Cross-club visits allowed for weigh-ins.</span>
         )}
       </div>
 

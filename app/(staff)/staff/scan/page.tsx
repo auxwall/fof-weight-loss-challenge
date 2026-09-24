@@ -120,7 +120,7 @@ export default function StaffScanPage() {
       </div>
 
       <footer className="text-center text-[11px] text-zinc-400">
-        Gym Floor Scanner · Works with all branch passes
+        Gym Floor Scanner · Works with all club passes
       </footer>
     </div>
   );

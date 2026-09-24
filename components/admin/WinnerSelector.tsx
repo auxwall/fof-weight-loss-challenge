@@ -67,7 +67,7 @@ export default function WinnerSelector({
         position,
         userId: candidate.userId,
         name: candidate.name,
-        prizeAed: position === 1 ? 15000 : position === 2 ? 5000 : 3000,
+        prizeAed: position === 1 ? 10000 : position === 2 ? 5000 : 3000,
         kgLost: candidate.kgLost,
         branchLabel: candidate.branchLabel,
       },
@@ -186,7 +186,7 @@ export default function WinnerSelector({
           <div className="flex items-center justify-between mb-2">
             <span className="text-[10px] uppercase font-black tracking-widest text-amber-400 flex items-center gap-1">
               <Crown className="w-3.5 h-3.5" />
-              <span>1st Place · 15,000 AED</span>
+              <span>1st Place · 10,000 AED</span>
             </span>
             {winners[1] && (
               <button
@@ -203,7 +203,7 @@ export default function WinnerSelector({
               <div className="text-base font-black text-white uppercase">{winners[1].name}</div>
               <div className="text-xs text-zinc-400">{winners[1].branchLabel}</div>
               <div className="mt-2 text-lg font-black text-gymRed font-mono">
-                -{winners[1].kgLost.toFixed(1)} KG
+                -{Number(winners[1].kgLost).toFixed(3)} KG
               </div>
             </div>
           ) : (
@@ -241,7 +241,7 @@ export default function WinnerSelector({
               <div className="text-base font-black text-white uppercase">{winners[2].name}</div>
               <div className="text-xs text-zinc-400">{winners[2].branchLabel}</div>
               <div className="mt-2 text-lg font-black text-gymRed font-mono">
-                -{winners[2].kgLost.toFixed(1)} KG
+                -{Number(winners[2].kgLost).toFixed(3)} KG
               </div>
             </div>
           ) : (
@@ -279,7 +279,7 @@ export default function WinnerSelector({
               <div className="text-base font-black text-white uppercase">{winners[3].name}</div>
               <div className="text-xs text-zinc-400">{winners[3].branchLabel}</div>
               <div className="mt-2 text-lg font-black text-gymRed font-mono">
-                -{winners[3].kgLost.toFixed(1)} KG
+                -{Number(winners[3].kgLost).toFixed(3)} KG
               </div>
             </div>
           ) : (
@@ -327,7 +327,7 @@ export default function WinnerSelector({
                 <tr>
                   <th className="p-3.5 font-semibold text-center">Rank</th>
                   <th className="p-3.5 font-semibold">Participant</th>
-                  <th className="p-3.5 font-semibold">Branch</th>
+                  <th className="p-3.5 font-semibold">Club</th>
                   <th className="p-3.5 font-semibold text-center">Day-1</th>
                   <th className="p-3.5 font-semibold text-center">Final</th>
                   <th className="p-3.5 font-semibold text-center">Absolute KG Lost</th>
@@ -361,15 +361,15 @@ export default function WinnerSelector({
                         <td className="p-3.5 font-medium text-zinc-300">{c.branchLabel}</td>
 
                         <td className="p-3.5 text-center font-mono font-semibold text-zinc-300">
-                          {c.day1Weight.toFixed(1)} kg
+                          {Number(c.day1Weight).toFixed(3)} kg
                         </td>
 
                         <td className="p-3.5 text-center font-mono font-semibold text-zinc-300">
-                          {c.finalWeight.toFixed(1)} kg
+                          {Number(c.finalWeight).toFixed(3)} kg
                         </td>
 
                         <td className="p-3.5 text-center font-mono font-black text-sm text-gymRed">
-                          -{c.kgLost.toFixed(1)} kg
+                          -{Number(c.kgLost).toFixed(3)} kg
                         </td>
 
                         <td className="p-3.5 text-right whitespace-nowrap space-x-1">
