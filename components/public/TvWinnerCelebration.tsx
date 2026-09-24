@@ -229,7 +229,7 @@ export default function TvWinnerCelebration({
           </h1>
 
           <p className="text-sm sm:text-base lg:text-xl xl:text-2xl text-zinc-400 font-semibold tracking-wide">
-            Face Off Fitness Dubai · 23,000 AED Total Cash Prize Pool
+            Face Off Fitness Dubai · 19,000 AED Total Cash Prize Pool
           </p>
         </div>
 

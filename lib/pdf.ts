@@ -130,7 +130,7 @@ export async function generateChallengePdf(data: ChallengePdfData): Promise<Uint
       }
       page.drawImage(logoImage, {
         x: CONTENT_CENTER_X - logoDrawW / 2,
-        y: cursorY - logoDrawH-20,
+        y: cursorY - logoDrawH - 20,
         width: logoDrawW,
         height: logoDrawH,
       });
@@ -144,26 +144,26 @@ export async function generateChallengePdf(data: ChallengePdfData): Promise<Uint
   }
 
   // Title: "CERTIFICATE" (Crimson Serif Bold, matching reference)
-  drawCentered("CERTIFICATE", CONTENT_CENTER_X, cursorY-30, 41, fontSerifBold, redCrimson);
+  drawCentered("CERTIFICATE", CONTENT_CENTER_X, cursorY - 30, 41, fontSerifBold, redCrimson);
   cursorY -= 33;
 
   // Subtitle: "Of Participation" (Black Serif Italic, matching reference)
-  drawCentered("Of Participation", CONTENT_CENTER_X, cursorY-30, 22, fontSerifItalic, textBlack);
+  drawCentered("Of Participation", CONTENT_CENTER_X, cursorY - 30, 22, fontSerifItalic, textBlack);
   cursorY -= 40;
 
   // Lead-in: "This certificate is proudly presented to" (Sentence-case, clean charcoal)
-  drawCentered("This certificate is proudly presented to", CONTENT_CENTER_X, cursorY-20, 12, fontRegular, textDark);
+  drawCentered("This certificate is proudly presented to", CONTENT_CENTER_X, cursorY - 20, 12, fontRegular, textDark);
   cursorY -= 48;
 
   // ---- 3. recipient name (Centerpiece in Crimson Script/Italic) -----------
-  drawCentered(data.userName, CONTENT_CENTER_X, cursorY-30, 46, fontSerifItalic, redCrimson);
+  drawCentered(data.userName, CONTENT_CENTER_X, cursorY - 30, 46, fontSerifItalic, redCrimson);
   cursorY -= 14;
 
   // Thin gold accent underline below recipient name
   const underlineW = 380;
   page.drawLine({
-    start: { x: CONTENT_CENTER_X - underlineW / 2, y: cursorY-30 },
-    end: { x: CONTENT_CENTER_X + underlineW / 2, y: cursorY-30 },
+    start: { x: CONTENT_CENTER_X - underlineW / 2, y: cursorY - 30 },
+    end: { x: CONTENT_CENTER_X + underlineW / 2, y: cursorY - 30 },
     thickness: 1.25,
     color: goldLine,
   });
@@ -172,7 +172,7 @@ export async function generateChallengePdf(data: ChallengePdfData): Promise<Uint
   // ---- 4. citation paragraph (centered in Serif Italic with proper spacing)
   const kgLostDisplay = `${Math.abs(Number(data.kgLost)).toFixed(3)} kg`;
   const paragraph =
-    `has successfully completed the Gym Weight Loss Challenge at ${data.branchName}, ` +
+    `has successfully completed the Club Weight Loss Challenge at ${data.branchName}, ` +
     `achieving a verified total weight loss of ${kgLostDisplay} — from ${Number(data.day1WeightKg).toFixed(3)} kg ` +
     `on ${formatDubai(data.day1Date, "DD MMM YYYY")} to ${Number(data.finalWeightKg).toFixed(3)} kg on ${formatDubai(
       data.finalDate,
@@ -180,7 +180,7 @@ export async function generateChallengePdf(data: ChallengePdfData): Promise<Uint
     )}.`;
   const paraLines = wrapText(paragraph, fontSerifItalic, 12.5, 480);
   for (const line of paraLines) {
-    drawCentered(line, CONTENT_CENTER_X, cursorY-20, 12.5, fontSerifItalic, textDark);
+    drawCentered(line, CONTENT_CENTER_X, cursorY - 20, 12.5, fontSerifItalic, textDark);
     cursorY -= 20;
   }
 
@@ -245,7 +245,7 @@ export async function generateChallengePdf(data: ChallengePdfData): Promise<Uint
 
   // Discreet official footer
   drawCentered(
-    "GYM WEIGHT LOSS CHALLENGE · DUBAI, UAE · CONFIDENTIAL & VERIFIED",
+    "WEIGHT LOSS CHALLENGE · DUBAI, UAE · CONFIDENTIAL & VERIFIED",
     CONTENT_CENTER_X,
     28,
     7,

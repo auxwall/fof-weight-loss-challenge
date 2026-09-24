@@ -62,7 +62,7 @@ export default function SignaturePad({ onSave, onClear }: SignaturePadProps) {
     <div className="w-full space-y-2">
       <div className="flex items-center justify-between text-xs text-zinc-400 mb-1">
         <span className="font-semibold uppercase tracking-wider text-zinc-300">
-          Participant Signature
+          Participant Signature <span className="text-gymRed">*</span>
         </span>
         <span className="text-[10px] text-zinc-400">Sign with finger or stylus</span>
       </div>
@@ -72,9 +72,9 @@ export default function SignaturePad({ onSave, onClear }: SignaturePadProps) {
           ref={padRef}
           penColor="#000000"
           canvasProps={{
-            className: "w-full h-full cursor-crosshair",
+            className: "w-full h-full cursor-crosshair bg-white",
           }}
-          backgroundColor="rgba(255, 255, 255, 0)"
+          backgroundColor="#FFFFFF"
         />
         <div className="absolute bottom-2 right-3 pointer-events-none text-[10px] text-zinc-400 select-none uppercase tracking-widest font-medium">
           Sign inside box

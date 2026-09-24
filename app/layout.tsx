@@ -10,9 +10,9 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Gym Weight Loss Challenge — Dubai 2026",
-  description: "Official 30-day Gym Weight Loss Challenge across Dubai clubs: Al Rashidiya, Al Barsha, Abu Hail, and Al Nahda. Total prizes of 18,000 AED.",
-  keywords: ["gym challenge", "weight loss", "dubai gym", "fitness challenge", "al barsha", "al rashidiya"],
+  title: "Club Weight Loss Challenge — Dubai 2026",
+  description: "Official 30-day Club Weight Loss Challenge across Dubai clubs: Al Rashidiya, Al Barsha, Abu Hail, and Al Nahda. Free registration with total prizes of 19,000 AED Cash Prize (10,000 AED 1st, 5,000 AED 2nd, and 3,000 AED 3rd).",
+  keywords: ["club challenge", "weight loss challenge", "dubai fitness club", "free registration", "al barsha", "al rashidiya"],
 };
 
 export const viewport: Viewport = {

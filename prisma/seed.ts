@@ -71,9 +71,9 @@ async function main() {
       registrationStart: regStart,
       registrationEnd: regEnd,
       finalizeDate: finalizeDate,
-      rulesText: `GYM WEIGHT LOSS CHALLENGE — OFFICIAL RULES
-1. This is an official 30-day challenge starting from your Day-1 weigh-in at any club.
-2. All participants must return to any club on 30th day of their Day-1 date for the final weigh-in.
+      rulesText: `CLUB WEIGHT LOSS CHALLENGE — OFFICIAL RULES
+1. This is an official 30-day challenge starting from your Day-1 weigh-in at any of our club.
+2. All participants must return to any of our club on 30th day of their Day-1 date for the final weigh-in.
 3. Failure to return on 30th day results in automatic disqualification.
 4. Winners are determined strictly by total kilograms lost (Day-1 weight minus Final weight).
 5. Management's decision on final results is final and binding.

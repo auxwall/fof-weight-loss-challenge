@@ -164,7 +164,7 @@ export default function WinnerCelebrationCard({ winners, onReset }: WinnerCelebr
           <div className="relative">
             <Image
               src="/logo.png"
-              alt="Gym Logo"
+              alt="Club Logo"
               width={256}
               height={256}
               className="object-contain"
@@ -269,7 +269,7 @@ export default function WinnerCelebrationCard({ winners, onReset }: WinnerCelebr
 
         {/* Card Footer Watermark */}
         <div className="pt-3 border-t border-zinc-800/80 flex items-center justify-between text-[9px] text-zinc-500 uppercase tracking-widest font-semibold">
-          <span>Official Gym Challenge</span>
+          <span>Official Club Challenge</span>
           <span>Dubai · Verified Results</span>
         </div>
       </div>

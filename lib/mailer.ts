@@ -34,7 +34,7 @@ function getLogoAttachment() {
   return null;
 }
 
-const FROM_HEADER = process.env.SMTP_FROM || "Gym Weight Loss Challenge <noreply@gymchallenge.ae>";
+const FROM_HEADER = process.env.SMTP_FROM || "Club Weight Loss Challenge <noreply@gymchallenge.ae>";
 const COMPANY_CERTIFICATE_EMAIL = process.env.COMPANY_CERTIFICATE_EMAIL;
 
 /**
@@ -57,7 +57,7 @@ export async function sendRegistrationEmail(params: {
       <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Gym Weight Loss Challenge</title>
+        <title>Club Weight Loss Challenge</title>
       </head>
       <body style="margin: 0; padding: 24px 10px; background-color: #0A0A0A; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%;">
         <center>
@@ -74,7 +74,7 @@ export async function sendRegistrationEmail(params: {
                   <img src="cid:gymlogo" alt="Face off Fitness" width="160" style="display: block; width: 160px; max-width: 160px; height: auto; margin: 0 auto; border: 0;" />
                 </div>
                 <h1 style="color: #FFFFFF !important; margin: 0; font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
-                  GYM WEIGHT LOSS CHALLENGE
+                  CLUB WEIGHT LOSS CHALLENGE
                 </h1>
                 <div style="color: #EC1C23 !important; font-size: 12px; font-weight: 700; letter-spacing: 1.5px; margin-top: 4px; text-transform: uppercase;">
                   Official Challenge Pass
@@ -89,7 +89,7 @@ export async function sendRegistrationEmail(params: {
                   Welcome, <span style="color: #EC1C23 !important;">${name}</span>!
                 </h2>
                 <p style="color: #9CA3AF !important; font-size: 14px; line-height: 1.5; margin: 6px 0 18px 0;">
-                  You have successfully registered. Present this official QR Pass when you visit the gym:
+                  You have successfully registered (Free Registration). Present this official QR Pass when you visit the club:
                 </p>
 
                 <!-- QR CODE BOX (CENTERED TABLE) -->
@@ -121,23 +121,23 @@ export async function sendRegistrationEmail(params: {
                         <strong style="color: #FFFFFF;">1. Save Your Pass:</strong> Keep this email or screenshot your <strong>QR Code</strong> and <strong>User ID (${userId})</strong> on your phone.
                       </div>
                       <div style="margin-bottom: 10px;">
-                        <strong style="color: #FFFFFF;">2. Visit Any Club:</strong> Walk into any of our 6 clubs: <strong>Al Rashidiya, Al Barsha, Abu Hail, or Al Nahda</strong>.
+                        <strong style="color: #FFFFFF;">2. Visit Any of our Club:</strong> Walk into any of our 6 clubs: <strong>Al Rashidiya, Al Barsha, Abu Hail, or Al Nahda</strong>.
                       </div>
                       <div style="margin-bottom: 10px;">
-                        <strong style="color: #FFFFFF;">3. Log Day-1 Starting Weight:</strong> Show this QR code to our team with your valid Emirates ID. They will log your official starting weight.
+                        <strong style="color: #FFFFFF;">3. Log Day-1 Starting Weight:</strong> Show this QR code to our team with your valid Emirates ID. They will log your official starting weight on or before 29th Oct 2026.
                       </div>
                       <div style="margin-bottom: 10px;">
                         <strong style="color: #FFFFFF;">4. 30-Day Clock Starts:</strong> Your official challenge clock begins on the exact date Day-1 is logged. Complete your final weigh-in within 30 days.
                       </div>
                       <div>
-                        <strong style="color: #FFFFFF;">5. Win Big:</strong> Top 3 participants with the highest absolute weight lost win <strong>10,000 AED</strong> (1st), <strong>5,000 AED</strong> (2nd), and <strong>3,000 AED</strong> (3rd)!
+                        <strong style="color: #FFFFFF;">5. Win Big:</strong> 18,000 AED Cash Prize Pool! Top participants win <strong>10,000 AED</strong> (1st), <strong>5,000 AED</strong> (2nd), and <strong>3,000 AED</strong> (3rd)!
                       </div>
                     </td>
                   </tr>
                 </table>
 
                 <p style="color: #9CA3AF !important; font-size: 12px; margin: 0;">
-                  Registered Club: <strong style="color: #FFFFFF;">${branchName}</strong> · (You may visit any club)
+                  Registered Club: <strong style="color: #FFFFFF;">${branchName}</strong> · (You may visit any of our club)
                 </p>
               </td>
             </tr>
@@ -145,7 +145,7 @@ export async function sendRegistrationEmail(params: {
             <!-- FOOTER -->
             <tr>
               <td align="center" style="font-size: 11px; color: #6B7280 !important; padding: 14px; background-color: #111111; border-top: 1px solid #222222; text-align: center;">
-                Face off Fitness · Gym Weight Loss Challenge · Dubai, UAE
+                Face off Fitness · Club Weight Loss Challenge · Dubai, UAE
               </td>
             </tr>
           </table>
@@ -238,7 +238,7 @@ export async function sendDay1Email(params: {
                   <img src="cid:gymlogo" alt="Face off Fitness" width="160" style="display: block; width: 160px; max-width: 160px; height: auto; margin: 0 auto; border: 0;" />
                 </div>
                 <h1 style="color: #FFFFFF !important; margin: 0; font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
-                  GYM WEIGHT LOSS CHALLENGE
+                  WEIGHT LOSS CHALLENGE
                 </h1>
                 <div style="color: #EC1C23 !important; font-size: 12px; font-weight: 700; letter-spacing: 1.5px; margin-top: 4px; text-transform: uppercase;">
                   Challenge Clock Started · Day-1 Confirmed
@@ -280,20 +280,19 @@ export async function sendDay1Email(params: {
                 <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #1A1A1A; border: 1px solid rgba(236, 28, 35, 0.4); border-radius: 10px; margin: 16px 0; text-align: center;">
                   <tr>
                     <td style="padding: 18px 20px;">
-                      <div style="font-size: 12px; color: #EC1C23 !important; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">Final Weigh-In (Day 30)</div>
+                      <div style="font-size: 12px; color: #EC1C23 !important; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">30 Days clock ends on</div>
                       <div style="font-size: 20px; font-weight: bold; color: #FFFFFF !important; margin-top: 4px;">
                         ${day30DateFormatted}
                       </div>
                       <p style="font-size: 12px; color: #D1D5DB !important; margin: 8px 0 0 0; line-height: 1.5;">
-                        You must return to any club on or before ${day31DateFormatted} for your final weigh-in. Failure to return results in automatic disqualification.
+                        You must return to any of our club on  ${day30DateFormatted} /  ${day31DateFormatted} on or before 10:00 PM for your final weigh-in. Failure to return during this period will result in automatic disqualification.
                       </p>
                     </td>
                   </tr>
                 </table>
 
-                ${
-                  effectiveRules
-                    ? `
+                ${effectiveRules
+      ? `
                 <!-- OFFICIAL CHALLENGE RULES FROM DB -->
                 <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #181818; border: 1px solid #2A2A2A; border-left: 4px solid #EC1C23; border-radius: 10px; margin: 16px 0; text-align: left;">
                   <tr>
@@ -306,11 +305,11 @@ export async function sendDay1Email(params: {
                   </tr>
                 </table>
                 `
-                    : ""
-                }
+      : ""
+    }
 
                 <p style="color: #9CA3AF !important; font-size: 12px; margin: 0;">
-                  Registered Club: <strong style="color: #FFFFFF;">${branchName}</strong> · (You are welcome to visit any club for final weigh-in)
+                  Registered Club: <strong style="color: #FFFFFF;">${branchName}</strong> · (You are welcome to visit any of our club for final weigh-in)
                 </p>
               </td>
             </tr>
@@ -318,7 +317,7 @@ export async function sendDay1Email(params: {
             <!-- FOOTER -->
             <tr>
               <td align="center" style="font-size: 11px; color: #6B7280 !important; padding: 14px; background-color: #111111; border-top: 1px solid #222222; text-align: center;">
-                Face off Fitness · Gym Weight Loss Challenge · Dubai, UAE
+                Face off Fitness · Club Weight Loss Challenge · Dubai, UAE
               </td>
             </tr>
           </table>
@@ -389,7 +388,7 @@ export async function sendFinalResultEmail(params: {
                   <img src="cid:gymlogo" alt="Face off Fitness" width="160" style="display: block; width: 160px; max-width: 160px; height: auto; margin: 0 auto; border: 0;" />
                 </div>
                 <h1 style="color: #FFFFFF !important; margin: 0; font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
-                  GYM WEIGHT LOSS CHALLENGE
+                  CLUB WEIGHT LOSS CHALLENGE
                 </h1>
                 <div style="color: #EC1C23 !important; font-size: 12px; font-weight: 700; letter-spacing: 1.5px; margin-top: 4px; text-transform: uppercase;">
                   Challenge Completed · Official Final Summary
@@ -404,7 +403,7 @@ export async function sendFinalResultEmail(params: {
                   Congratulations, <span style="color: #EC1C23 !important;">${name}</span>!
                 </h2>
                 <p style="color: #9CA3AF !important; font-size: 12px; line-height: 1.5; margin: 6px 0 18px 0;">
-                  You have successfully completed your final weigh-in for the Gym Weight Loss Challenge.
+                  You have successfully completed your final weigh-in for the Club Weight Loss Challenge.
                 </p>
 
                 <!-- USER ID BADGE -->
@@ -447,7 +446,7 @@ export async function sendFinalResultEmail(params: {
                 </table>
 
                 <p style="color: #9CA3AF !important; font-size: 12px; margin: 0; line-height: 1.5;">
-                  Gym management will announce the 1st (10,000 AED), 2nd (5,000 AED), and 3rd (3,000 AED) winners on the official Finalize Date. Stay tuned!
+                  Club management will announce the winners: 1st (10,000 AED), 2nd (5,000 AED), and 3rd (3,000 AED) on the official Finalize Date. Stay tuned!
                 </p>
               </td>
             </tr>
@@ -455,7 +454,7 @@ export async function sendFinalResultEmail(params: {
             <!-- FOOTER -->
             <tr>
               <td align="center" style="font-size: 11px; color: #6B7280 !important; padding: 14px; background-color: #111111; border-top: 1px solid #222222; text-align: center;">
-                Face off Fitness · Gym Weight Loss Challenge · Dubai, UAE
+                Face off Fitness · Club Weight Loss Challenge · Dubai, UAE
               </td>
             </tr>
           </table>
@@ -555,7 +554,7 @@ export async function sendReminderEmail(params: {
                   <img src="cid:gymlogo" alt="Face off Fitness" width="160" style="display: block; width: 160px; max-width: 160px; height: auto; margin: 0 auto; border: 0;" />
                 </div>
                 <h1 style="color: #FFFFFF !important; margin: 0; font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
-                  GYM WEIGHT LOSS CHALLENGE
+                  WEIGHT LOSS CHALLENGE
                 </h1>
                 <div style="color: #EC1C23 !important; font-size: 12px; font-weight: 700; letter-spacing: 1.5px; margin-top: 4px; text-transform: uppercase;">
                   Final Weigh-In Reminder (2 Days Left)
@@ -636,7 +635,7 @@ export async function sendReminderEmail(params: {
             <!-- FOOTER -->
             <tr>
               <td align="center" style="font-size: 11px; color: #6B7280 !important; padding: 14px; background-color: #111111; border-top: 1px solid #222222; text-align: center;">
-                Face off Fitness · Gym Weight Loss Challenge · Dubai, UAE
+                Face off Fitness · Club Weight Loss Challenge · Dubai, UAE
               </td>
             </tr>
           </table>

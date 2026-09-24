@@ -138,9 +138,12 @@ export default function RegisterForm({ branches }: RegisterFormProps) {
 
       {/* Date of Birth */}
       <div>
-        <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-1.5">
-          Date of Birth <span className="text-gymRed">*</span>
-        </label>
+        <div className="flex items-center justify-between mb-1.5">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300">
+            Date of Birth <span className="text-gymRed">*</span>
+          </label>
+          <span className="text-[10px] text-zinc-400 font-medium">Must be 18+ years</span>
+        </div>
         <div
           className={`relative w-full bg-zinc-900 border rounded-xl pl-10 pr-3.5 py-3 flex items-center transition-all cursor-pointer ${
             fieldErrors.dob
@@ -162,12 +165,12 @@ export default function RegisterForm({ branches }: RegisterFormProps) {
           </span>
           <ChevronDown className="ml-auto w-4 h-4 text-zinc-500 pointer-events-none shrink-0" />
 
-          {/* Native date picker overlay that captures tap/click across the entire container */}
+          {/* Native date picker overlay restricted to participants who are at least 18 years old */}
           <input
             type="date"
             name="dob"
             required
-            max={new Date().toISOString().split("T")[0]}
+            max={dayjs().subtract(18, "year").format("YYYY-MM-DD")}
             value={formData.dob}
             onChange={handleChange}
             onClick={(e) => {

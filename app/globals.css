@@ -58,7 +58,7 @@ body {
   width: 100% !important;
   height: 100% !important;
   touch-action: none;
-  background-color: #121212;
+  background-color: #FFFFFF !important;
   border-radius: 0.75rem;
 }
 

@@ -65,17 +65,22 @@ export const RegisterSchema = z.object({
     .refine(
       (val) => {
         const d = new Date(val);
-        return !isNaN(d.getTime()) && d < new Date();
+        if (isNaN(d.getTime())) return false;
+        
+        // Calculate age: check if at least 18 years old today
+        const today = new Date();
+        const min18Date = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+        return d <= min18Date;
       },
       {
-        message: "Please enter a valid date of birth.",
+        message: "You must be at least 18 years old to join the challenge.",
       }
     ),
 
   branchId: z
     .string({ error: "Please select your club." })
     .trim()
-    .min(1, "Please select your primary gym club."),
+    .min(1, "Please select your primary club."),
 
   termsAccepted: z.literal(true, {
     error: "You must accept the terms and conditions to register.",

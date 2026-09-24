@@ -70,7 +70,7 @@ export default async function AdminDashboardPage() {
               <Clock className="w-4 h-4" />
             </div>
             <div className="text-2xl sm:text-3xl font-black text-blue-400">{registeredCount}</div>
-            <span className="text-[10px] text-zinc-400 mt-1 block">Need gym weigh-in</span>
+            <span className="text-[10px] text-zinc-400 mt-1 block">Need club weigh-in</span>
           </div>
 
           <div className="gym-card rounded-2xl p-4 sm:p-5 border-amber-900/40">

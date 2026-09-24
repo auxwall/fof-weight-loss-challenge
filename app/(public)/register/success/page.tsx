@@ -52,7 +52,7 @@ export default async function RegisterSuccessPage({ searchParams }: SuccessPageP
         </div>
       </main>
 
-      <footer className="text-center text-[11px] text-zinc-500 py-6"> Gym Weight Loss Challenge · Dubai, UAE </footer>
+      <footer className="text-center text-[11px] text-zinc-500 py-6">Club Weight Loss Challenge · Dubai, UAE</footer>
     </div>
   );
 }

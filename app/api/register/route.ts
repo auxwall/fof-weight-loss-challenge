@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     // 4. Verify Branch exists
     const branch = await prisma.branch.findUnique({ where: { id: branchId } });
     if (!branch) {
-      return NextResponse.json({ error: "Selected gym branch is invalid." }, { status: 400 });
+      return NextResponse.json({ error: "Selected club is invalid." }, { status: 400 });
     }
 
     // 5. Generate random 5-digit ID (10000 - 99999) to protect participant count privacy

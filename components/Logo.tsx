@@ -22,7 +22,7 @@ export default function Logo({ size = "md", href = "/", showText = false, classN
       <div className="relative flex items-center justify-center transition-transform duration-200 group-hover:scale-105">
         <Image
           src="/logo.png"
-          alt="Gym Logo"
+          alt="Club Logo"
           width={dimensions.width}
           height={dimensions.height}
           className="object-contain w-auto max-h-[70px] sm:max-h-[90px] md:max-h-[105px]"

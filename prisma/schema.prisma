@@ -98,6 +98,7 @@ model WeighIn {
   loggedByStaff   Staff       @relation("LoggedByStaff", fields: [loggedByStaffId], references: [id])
 
   photoUrl           String?     // URL path to scale weight photo proof
+  personScalePhotoUrl String?    // URL path to scale + person on weigh machine photo proof
   emiratesIdPhotoUrl String?     // URL path to Emirates ID photo proof
   signatureUrl       String?     // URL path to participant digital signature image
   pdfUrl          String?     // generated certificate file reference

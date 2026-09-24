@@ -171,7 +171,7 @@ export default function StaffDashboardClient({
           <div className="flex items-center gap-3">
             <Logo size="sm" showText={false} />
             <div className="hidden sm:flex flex-col">
-              <span className="font-black text-sm uppercase tracking-wider text-white">GYM FLOOR <span className="text-gymRed">CHECK-IN</span></span>
+              <span className="font-black text-sm uppercase tracking-wider text-white">CLUB FLOOR <span className="text-gymRed">CHECK-IN</span></span>
               <span className="text-[10px] text-zinc-400 uppercase tracking-widest font-semibold">Participant Registry</span>
             </div>
             {role === "SUPER_ADMIN" && (

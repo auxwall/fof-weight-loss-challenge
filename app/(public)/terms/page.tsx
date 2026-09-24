@@ -33,7 +33,7 @@ export default async function TermsPage() {
         </div>
       </main>
 
-      <footer className="text-center text-[11px] text-zinc-500 py-6">Official Gym Weight Loss Challenge · Dubai, UAE</footer>
+      <footer className="text-center text-[11px] text-zinc-500 py-6">Official Club Weight Loss Challenge · Dubai, UAE</footer>
     </div>
   );
 }

@@ -141,7 +141,7 @@ export default function StaffLoginPage() {
       </main>
 
       <footer className="text-center text-[11px] text-zinc-500 py-2 sm:py-6 shrink-0">
-        Authorized gym personnel & administrative access only.
+        Authorized club personnel & administrative access only.
       </footer>
     </div>
   );

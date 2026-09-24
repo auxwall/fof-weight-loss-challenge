@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { userId, type, weightKg, signatureDataUrl, branchId, scalePhoto, emiratesIdPhoto } = body;
+    const { userId, type, weightKg, signatureDataUrl, branchId, scalePhoto, personScalePhoto, emiratesIdPhoto } = body;
 
     if (!userId || !type || weightKg === undefined || weightKg === null) {
       return NextResponse.json(
@@ -105,6 +105,20 @@ export async function POST(req: NextRequest) {
         }
       }
 
+      // Save scale + person on machine photo proof if provided
+      let personScalePhotoUrl: string | null = null;
+      if (personScalePhoto) {
+        try {
+          personScalePhotoUrl = await saveNewImage({
+            base64Data: personScalePhoto,
+            folder: "scales",
+            fileName: `person_scale_day1_${user.id}_${Date.now()}`,
+          });
+        } catch (personErr) {
+          console.error("Failed to save Day-1 person on scale photo:", personErr);
+        }
+      }
+
       // Save digital signature proof if provided
       let savedSignatureUrl: string | null = null;
       if (signatureDataUrl) {
@@ -143,6 +157,7 @@ export async function POST(req: NextRequest) {
             branchId: effectiveBranchId,
             loggedByStaffId: session.userId,
             photoUrl: scalePhotoUrl,
+            personScalePhotoUrl: personScalePhotoUrl || null,
             emiratesIdPhotoUrl: savedEmiratesIdPhotoUrl || emiratesIdPhoto || null,
             signatureUrl: savedSignatureUrl || signatureDataUrl,
           },
@@ -247,6 +262,34 @@ export async function POST(req: NextRequest) {
         }
       }
 
+      // Save scale + person photo proof if provided
+      let personScalePhotoUrl: string | null = null;
+      if (personScalePhoto) {
+        try {
+          personScalePhotoUrl = await saveNewImage({
+            base64Data: personScalePhoto,
+            folder: "scales",
+            fileName: `person_scale_final_${user.id}_${Date.now()}`,
+          });
+        } catch (personErr) {
+          console.error("Failed to save Final person on scale photo:", personErr);
+        }
+      }
+
+      // Save Emirates ID photo proof if provided
+      let savedEmiratesIdPhotoUrl: string | null = null;
+      if (emiratesIdPhoto) {
+        try {
+          savedEmiratesIdPhotoUrl = await saveNewImage({
+            base64Data: emiratesIdPhoto,
+            folder: "emirates_ids",
+            fileName: `emirates_id_final_${user.id}_${Date.now()}`,
+          });
+        } catch (idErr) {
+          console.error("Failed to save Final Emirates ID photo:", idErr);
+        }
+      }
+
       // Save signature as PNG image file and get URL path
       let savedSignatureUrl: string | null = null;
       if (signatureDataUrl) {
@@ -280,9 +323,11 @@ export async function POST(req: NextRequest) {
             branchId: effectiveBranchId,
             loggedByStaffId: session.userId,
             photoUrl: scalePhotoUrl,
+            personScalePhotoUrl: personScalePhotoUrl || null,
+            emiratesIdPhotoUrl: savedEmiratesIdPhotoUrl || emiratesIdPhoto || null,
             signatureUrl: savedSignatureUrl || signatureDataUrl,
           },
-          include: { branch: true },
+          include: { branch: true, loggedByStaff: true },
         }),
         prisma.user.update({
           where: { id: user.id },
