@@ -47,6 +47,9 @@ export function getChallengeDay(day1Date: Date | string | null | undefined): num
   return Math.max(1, diffDays + 1);
 }
 
+// Set to true or set NEXT_PUBLIC_DISABLE_FINAL_LOCK="true" in .env to bypass final weigh-in lock for testing
+export const DEV_BYPASS_FINAL_LOCK = false;
+
 export interface FinalWeighInWindow {
   isEligible: boolean;
   challengeDay: number;
@@ -67,6 +70,17 @@ export function getFinalWeighInWindow(
   day1Date: Date | string | null | undefined,
   deadlineDate?: Date | string | null | undefined
 ): FinalWeighInWindow {
+  if (DEV_BYPASS_FINAL_LOCK || process.env.NEXT_PUBLIC_DISABLE_FINAL_LOCK === "true") {
+    return {
+      isEligible: true,
+      challengeDay: 30,
+      status: "OPEN",
+      day30Date: "Test Mode",
+      day31Date: "Test Mode",
+      message: "Test Mode: Final weigh-in window lock is bypassed.",
+    };
+  }
+
   if (!day1Date) {
     return {
       isEligible: false,
