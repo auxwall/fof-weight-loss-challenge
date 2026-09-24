@@ -208,7 +208,7 @@ export async function generateChallengePdf(data: ChallengePdfData): Promise<Uint
     color: textDark,
   });
   drawCentered(data.branchName.toUpperCase(), rightColX, lineY - 16, 10.5, fontBold, textDark);
-  drawCentered("Official Branch", rightColX, lineY - 30, 8.5, fontRegular, textMuted);
+  drawCentered("Official Club", rightColX, lineY - 30, 8.5, fontRegular, textMuted);
 
   // Discreet official footer
   drawCentered(

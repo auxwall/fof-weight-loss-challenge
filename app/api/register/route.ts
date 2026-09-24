@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: firstIssue?.message || "Invalid registration data." },{ status: 400 });
     }
 
-    const { name, emiratesId, mobile, email, gender, branchId } = parsed.data;
+    const { name, emiratesId, mobile, email, gender, dob, branchId } = parsed.data;
 
     // 2. Check Registration Window in Dubai Time
     const settings = await prisma.challengeSettings.findUnique({ where: { id: "singleton" }, });
@@ -69,7 +69,19 @@ export async function POST(req: NextRequest) {
     }
 
     // 6. Create User
-    const user = await prisma.user.create({ data: { id: newUserId, name: name.trim(), emiratesId: cleanEmiratesId, mobile: cleanMobile, email: cleanEmail, gender: gender === "FEMALE" ? Gender.FEMALE : Gender.MALE, registeredBranchId: branch.id, status: "REGISTERED", }, });
+    const user = await prisma.user.create({
+      data: {
+        id: newUserId,
+        name: name.trim(),
+        emiratesId: cleanEmiratesId,
+        mobile: cleanMobile,
+        email: cleanEmail,
+        gender: gender === "FEMALE" ? Gender.FEMALE : Gender.MALE,
+        dob: dob ? new Date(dob) : null,
+        registeredBranchId: branch.id,
+        status: "REGISTERED",
+      },
+    });
 
     // 6. Generate QR code (encodes User ID only)
     const qrBuffer = await generateQrBuffer(user.id);

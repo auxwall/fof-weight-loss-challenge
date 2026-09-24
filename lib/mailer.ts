@@ -121,7 +121,7 @@ export async function sendRegistrationEmail(params: {
                         <strong style="color: #FFFFFF;">1. Save Your Pass:</strong> Keep this email or screenshot your <strong>QR Code</strong> and <strong>User ID (${userId})</strong> on your phone.
                       </div>
                       <div style="margin-bottom: 10px;">
-                        <strong style="color: #FFFFFF;">2. Visit Any Branch:</strong> Walk into any of our 4 branches: <strong>Al Rashidiya, Al Barsha, Abu Hail, or Al Nahda</strong>.
+                        <strong style="color: #FFFFFF;">2. Visit Any Club:</strong> Walk into any of our 6 clubs: <strong>Al Rashidiya, Al Barsha, Abu Hail, or Al Nahda</strong>.
                       </div>
                       <div style="margin-bottom: 10px;">
                         <strong style="color: #FFFFFF;">3. Log Day-1 Starting Weight:</strong> Show this QR code to our team. They will log your official starting weight.
@@ -137,7 +137,7 @@ export async function sendRegistrationEmail(params: {
                 </table>
 
                 <p style="color: #9CA3AF !important; font-size: 12px; margin: 0;">
-                  Registered Branch: <strong style="color: #FFFFFF;">${branchName}</strong> · (You may visit any branch)
+                  Registered Club: <strong style="color: #FFFFFF;">${branchName}</strong> · (You may visit any club)
                 </p>
               </td>
             </tr>
@@ -279,10 +279,10 @@ export async function sendDay1Email(params: {
                     <td style="padding: 18px 20px;">
                       <div style="font-size: 12px; color: #EC1C23 !important; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">Final Weigh-In Deadline</div>
                       <div style="font-size: 20px; font-weight: bold; color: #FFFFFF !important; margin-top: 4px;">
-                        ${formatDubai(deadlineDate, "DD MMMM YYYY (hh:mm A)")}
+                        ${formatDubai(deadlineDate, "DD MMMM YYYY")}
                       </div>
                       <p style="font-size: 12px; color: #D1D5DB !important; margin: 8px 0 0 0; line-height: 1.5;">
-                        ⚠️ You must return to any branch on or before Day 30 for your final weigh-in. Failure to return results in automatic disqualification.
+                        You must return to any club on or before ${formatDubai(deadlineDate, "DD MMMM YYYY")} for your final weigh-in. Failure to return results in automatic disqualification.
                       </p>
                     </td>
                   </tr>
@@ -307,7 +307,7 @@ export async function sendDay1Email(params: {
                 }
 
                 <p style="color: #9CA3AF !important; font-size: 12px; margin: 0;">
-                  Registered Branch: <strong style="color: #FFFFFF;">${branchName}</strong> · (You are welcome to visit any branch for final weigh-in)
+                  Registered Club: <strong style="color: #FFFFFF;">${branchName}</strong> · (You are welcome to visit any club for final weigh-in)
                 </p>
               </td>
             </tr>

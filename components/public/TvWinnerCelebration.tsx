@@ -206,7 +206,7 @@ export default function TvWinnerCelebration({ winners }: TvWinnerCelebrationProp
                 {second ? second.name : "To Be Announced"}
               </h3>
               <p className="text-xs sm:text-sm lg:text-base xl:text-lg font-bold text-zinc-400 mt-1">
-                {second ? `${second.branchLabel} Branch` : "Face Off Fitness"}
+                {second ? `${second.branchLabel} Club` : "Face Off Fitness"}
               </p>
             </div>
 
@@ -244,7 +244,7 @@ export default function TvWinnerCelebration({ winners }: TvWinnerCelebrationProp
                 {first ? first.name : "To Be Announced"}
               </h2>
               <p className="text-sm sm:text-base lg:text-xl xl:text-2xl font-black text-amber-400/90 mt-2">
-                {first ? `${first.branchLabel} Branch` : "Official Champion"}
+                {first ? `${first.branchLabel} Club` : "Official Champion"}
               </p>
             </div>
 
@@ -280,7 +280,7 @@ export default function TvWinnerCelebration({ winners }: TvWinnerCelebrationProp
                 {third ? third.name : "To Be Announced"}
               </h3>
               <p className="text-xs sm:text-sm lg:text-base xl:text-lg font-bold text-zinc-400 mt-1">
-                {third ? `${third.branchLabel} Branch` : "Face Off Fitness"}
+                {third ? `${third.branchLabel} Club` : "Face Off Fitness"}
               </p>
             </div>
 

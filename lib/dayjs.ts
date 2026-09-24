@@ -95,7 +95,7 @@ export function getFinalWeighInWindow(
         status: "EXPIRED",
         day30Date,
         day31Date,
-        message: "Participant has exceeded the Day 30/31 return window and is disqualified.",
+        message: "Participant has exceeded the 30-day return window and is disqualified.",
       };
     }
   } else if (challengeDay > 31) {
@@ -105,7 +105,7 @@ export function getFinalWeighInWindow(
       status: "EXPIRED",
       day30Date,
       day31Date,
-      message: "Participant has exceeded the Day 30/31 return window and is disqualified.",
+      message: "Participant has exceeded the 30-day return window and is disqualified.",
     };
   }
 
@@ -117,18 +117,18 @@ export function getFinalWeighInWindow(
       status: "TOO_EARLY",
       day30Date,
       day31Date,
-      message: `Final weigh-in is only allowed on Day 30 or Day 31. Participant is currently on Day ${challengeDay}. Window opens on ${day30Date}.`,
+      message: `Final weigh-in is only allowed on Day 30. Participant is currently on Day ${challengeDay}. Window opens on ${day30Date}.`,
     };
   }
 
-  // Exactly Day 30 or Day 31
+  // Day 30 (with Day 31 buffer)
   return {
     isEligible: true,
     challengeDay,
     status: "OPEN",
     day30Date,
     day31Date,
-    message: `Final weigh-in window is open (Day ${challengeDay} of 30/31).`,
+    message: `Final weigh-in window is open (Day ${challengeDay} of 30).`,
   };
 }
 

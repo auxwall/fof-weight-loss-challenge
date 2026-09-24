@@ -327,7 +327,7 @@ export default function WinnerSelector({
                 <tr>
                   <th className="p-3.5 font-semibold text-center">Rank</th>
                   <th className="p-3.5 font-semibold">Participant</th>
-                  <th className="p-3.5 font-semibold">Branch</th>
+                  <th className="p-3.5 font-semibold">Club</th>
                   <th className="p-3.5 font-semibold text-center">Day-1</th>
                   <th className="p-3.5 font-semibold text-center">Final</th>
                   <th className="p-3.5 font-semibold text-center">Absolute KG Lost</th>

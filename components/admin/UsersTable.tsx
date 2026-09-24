@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import PhotoProofModal from "@/components/staff/PhotoProofModal";
+import { formatDateOnlyDubai } from "@/lib/dayjs";
 
 interface Branch {
   id: string;
@@ -25,12 +26,14 @@ interface Participant {
   mobile: string;
   email: string;
   gender: string;
+  dob?: string | null;
   branchId: string;
   branchLabel: string;
   status: "REGISTERED" | "ACTIVE" | "COMPLETED" | "DISQUALIFIED";
   day1Date: string | null;
   day1Weight: number | null;
   day1PhotoUrl?: string | null;
+  day1SignatureUrl?: string | null;
   finalDate: string | null;
   finalWeight: number | null;
   finalPhotoUrl?: string | null;
@@ -140,7 +143,7 @@ export default function UsersTable({ initialUsers, branches }: UsersTableProps) 
             onChange={(e) => setBranchFilter(e.target.value)}
             className="bg-zinc-900 border border-zinc-700/80 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-gymRed"
           >
-            <option value="ALL">All Branches ({users.length})</option>
+            <option value="ALL">All Clubs ({users.length})</option>
             {branches.map((b) => (
               <option key={b.id} value={b.id}>
                 {b.label}
@@ -192,7 +195,7 @@ export default function UsersTable({ initialUsers, branches }: UsersTableProps) 
                 <th className="p-3.5 font-semibold">Participant</th>
                 <th className="p-3.5 font-semibold">Emirates ID</th>
                 <th className="p-3.5 font-semibold">Contact</th>
-                <th className="p-3.5 font-semibold">Branch</th>
+                <th className="p-3.5 font-semibold">Club</th>
                 <th className="p-3.5 font-semibold">Status</th>
                 <th className="p-3.5 font-semibold text-center">Day-1</th>
                 <th className="p-3.5 font-semibold text-center">Final</th>
@@ -221,6 +224,9 @@ export default function UsersTable({ initialUsers, branches }: UsersTableProps) 
                           {u.name}
                         </Link>
                         <div className="font-mono text-[10px] text-zinc-500">ID: {u.id}</div>
+                        {u.dob && (
+                          <div className="text-[10px] text-zinc-400">DOB: {formatDateOnlyDubai(u.dob)}</div>
+                        )}
                       </td>
 
                       {/* Emirates ID Masked / Revealed */}
@@ -257,24 +263,44 @@ export default function UsersTable({ initialUsers, branches }: UsersTableProps) 
                         {u.day1Weight !== null ? (
                           <div className="flex flex-col items-center gap-1">
                             <span className="font-semibold">{u.day1Weight.toFixed(1)} kg</span>
-                            {u.day1PhotoUrl && (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setProofModal({
-                                    isOpen: true,
-                                    url: u.day1PhotoUrl || null,
-                                    title: `${u.name} · Day-1 Scale Photo`,
-                                    subtitle: `Initial Weight: ${u.day1Weight?.toFixed(1)} kg`,
-                                  })
-                                }
-                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-sans font-medium bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-colors border border-zinc-700/60"
-                                title="View Day-1 Scale Photo Photo"
-                              >
-                                <Camera className="w-3 h-3 text-gymRed" />
-                                <span>Scale</span>
-                              </button>
-                            )}
+                            <div className="flex items-center gap-1">
+                              {u.day1PhotoUrl && (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setProofModal({
+                                      isOpen: true,
+                                      url: u.day1PhotoUrl || null,
+                                      title: `${u.name} · Day-1 Scale Photo`,
+                                      subtitle: `Initial Weight: ${u.day1Weight?.toFixed(1)} kg`,
+                                    })
+                                  }
+                                  className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-sans font-medium bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-colors border border-zinc-700/60"
+                                  title="View Day-1 Scale Photo"
+                                >
+                                  <Camera className="w-3 h-3 text-gymRed" />
+                                  <span>Scale</span>
+                                </button>
+                              )}
+                              {u.day1SignatureUrl && (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setProofModal({
+                                      isOpen: true,
+                                      url: u.day1SignatureUrl || null,
+                                      title: `${u.name} · Day-1 Digital Signature`,
+                                      subtitle: "Participant Sign-off at Day-1 Weigh-in",
+                                    })
+                                  }
+                                  className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-sans font-medium bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white transition-colors border border-zinc-700/60"
+                                  title="View Day-1 Digital Signature"
+                                >
+                                  <PenLine className="w-3 h-3 text-amber-400" />
+                                  <span>Sign</span>
+                                </button>
+                              )}
+                            </div>
                           </div>
                         ) : (
                           "—"

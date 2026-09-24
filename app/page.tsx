@@ -46,7 +46,7 @@ export default async function HomePage() {
 
         <p className="text-base sm:text-lg text-zinc-400 max-w-xl mb-8 leading-relaxed">
           The ultimate gym weight loss competition across our 6 clubs.
-          Register online, visit any branch for your Day-1 weigh-in, and start your 30-day countdown!
+          Register online, visit any club for your Day-1 weigh-in, and start your 30-day countdown!
         </p>
 
         {/* Prize Pool Highlights */}
@@ -142,7 +142,7 @@ export default async function HomePage() {
                 <h4 className="font-bold text-white text-base">Day-1 Weigh-In</h4>
               </div>
               <p className="text-zinc-400 text-xs leading-relaxed">
-                Visit any branch and present your QR code. Our team will record your official baseline weight to officially activate your 30-day challenge.
+                Visit any club and present your QR code. Our team will record your official baseline weight to officially activate your 30-day challenge.
               </p>
             </div>
 
@@ -154,7 +154,7 @@ export default async function HomePage() {
                 <h4 className="font-bold text-white text-base">Final Weigh-In</h4>
               </div>
               <p className="text-zinc-400 text-xs leading-relaxed">
-                Return to any branch on 30th day for your final weigh-in. Our team will record your results, capture your digital sign, and email your official verified certificate.
+                Return to any club on 30th day for your final weigh-in. Our team will record your results.
               </p>
             </div>
           </div>
@@ -164,7 +164,7 @@ export default async function HomePage() {
       {/* Participating Branches */}
       <section className="py-12 px-4 sm:px-6 max-w-4xl mx-auto w-full">
         <h2 className="text-center text-xs font-bold uppercase tracking-widest text-zinc-400 mb-2">
-          OUR BRANCHES
+          OUR CLUBS
         </h2>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -172,7 +172,7 @@ export default async function HomePage() {
             <div key={b.id} className="gym-card rounded-xl p-3.5 text-center flex flex-col items-center gap-1.5">
               <MapPin className="w-4 h-4 text-gymRed" />
               <span className="font-semibold text-sm text-white">{b.label}</span>
-              <span className="text-[10px] text-zinc-400">{b.address || "Official Branch"}</span>
+              <span className="text-[10px] text-zinc-400">{b.address || "Official Club"}</span>
             </div>
           ))}
         </div>

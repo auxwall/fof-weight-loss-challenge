@@ -180,7 +180,7 @@ export default function StaffManager({ initialStaff, branches }: StaffManagerPro
 
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300 mb-1">
-                Assigned Branch
+                Assigned Club
               </label>
               <select
                 value={formData.branchId}
@@ -226,7 +226,7 @@ export default function StaffManager({ initialStaff, branches }: StaffManagerPro
               <tr>
                 <th className="p-2.5 sm:p-3.5 text-[10px] sm:text-xs font-semibold">Account</th>
                 <th className="p-2.5 sm:p-3.5 text-[10px] sm:text-xs font-semibold">Role</th>
-                <th className="p-2.5 sm:p-3.5 text-[10px] sm:text-xs font-semibold">Branch</th>
+                <th className="p-2.5 sm:p-3.5 text-[10px] sm:text-xs font-semibold">Club</th>
                 <th className="p-2.5 sm:p-3.5 text-[10px] sm:text-xs font-semibold text-center whitespace-nowrap">
                   <span className="hidden sm:inline">Weigh-Ins Verified</span>
                   <span className="sm:hidden">Verified</span>

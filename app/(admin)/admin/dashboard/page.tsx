@@ -42,7 +42,7 @@ export default async function AdminDashboardPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-black uppercase text-white tracking-tight">CHALLENGE OVERVIEW</h1>
-            <p className="text-xs text-zinc-400 mt-1">Real-time monitoring across Dubai branches: Al Rashidiya, Al Barsha, Abu Hail, Al Nahda.</p>
+            <p className="text-xs text-zinc-400 mt-1">Real-time monitoring across Dubai clubs: Al Rashidiya, Al Barsha, Abu Hail, Al Nahda.</p>
           </div>
 
           <div className="flex items-center gap-2.5">
@@ -79,7 +79,7 @@ export default async function AdminDashboardPage() {
               <Calendar className="w-4 h-4" />
             </div>
             <div className="text-2xl sm:text-3xl font-black text-amber-400">{activeCount}</div>
-            <span className="text-[10px] text-zinc-400 mt-1 block">Within 31-day window</span>
+            <span className="text-[10px] text-zinc-400 mt-1 block">Within 30-day window</span>
           </div>
 
           <div className="gym-card rounded-2xl p-4 sm:p-5 border-emerald-900/40">
@@ -105,7 +105,7 @@ export default async function AdminDashboardPage() {
 
         {/* Branch Statistics Grid */}
         <div className="space-y-3">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-400">PARTICIPATION BY BRANCH</h2>
+          <h2 className="text-sm font-bold uppercase tracking-wider text-zinc-400">PARTICIPATION BY CLUB</h2>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {branches.map((b) => (
@@ -148,7 +148,7 @@ export default async function AdminDashboardPage() {
               </div>
               <h3 className="font-bold text-sm text-white mb-1">Participant Master Registry</h3>
               <p className="text-xs text-zinc-400 leading-relaxed">
-                Search, filter by branch & status, reveal masked Emirates IDs, and monitor days remaining.
+                Search, filter by club & status, reveal masked Emirates IDs, and monitor days remaining.
               </p>
             </div>
             <div className="flex items-center text-xs font-semibold text-gymRed mt-4 gap-1 group-hover:translate-x-1 transition-transform">

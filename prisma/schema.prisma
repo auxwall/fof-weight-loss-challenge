@@ -68,6 +68,7 @@ model User {
   mobile             String          @unique
   email              String          @unique
   gender             Gender
+  dob                DateTime?       // Date of Birth
   registeredBranchId String
   registeredBranch   Branch          @relation("RegisteredBranch", fields: [registeredBranchId], references: [id])
 
@@ -96,8 +97,9 @@ model WeighIn {
   loggedByStaffId String
   loggedByStaff   Staff       @relation("LoggedByStaff", fields: [loggedByStaffId], references: [id])
 
-  photoUrl        String?     // URL path to scale weight photo proof
-  signatureUrl    String?     // URL path to participant digital signature image
+  photoUrl           String?     // URL path to scale weight photo proof
+  emiratesIdPhotoUrl String?     // URL path to Emirates ID photo proof
+  signatureUrl       String?     // URL path to participant digital signature image
   pdfUrl          String?     // generated certificate file reference
 
   createdAt       DateTime    @default(now())

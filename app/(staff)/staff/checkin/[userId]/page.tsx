@@ -87,6 +87,7 @@ export default async function CheckinPage({ params }: CheckinPageProps) {
         mobile: user.mobile,
         email: user.email,
         gender: user.gender,
+        dob: user.dob ? user.dob.toISOString() : null,
         branchLabel: user.registeredBranch.label,
         branchId: user.registeredBranchId,
         status: computedStatus,

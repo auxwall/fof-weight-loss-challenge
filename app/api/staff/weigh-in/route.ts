@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { userId, type, weightKg, signatureDataUrl, branchId, scalePhoto } = body;
+    const { userId, type, weightKg, signatureDataUrl, branchId, scalePhoto, emiratesIdPhoto } = body;
 
     if (!userId || !type || weightKg === undefined || weightKg === null) {
       return NextResponse.json(
@@ -71,6 +71,13 @@ export async function POST(req: NextRequest) {
         );
       }
 
+      if (!signatureDataUrl) {
+        return NextResponse.json(
+          { error: "Digital signature is required to record Day-1 starting weigh-in." },
+          { status: 400 }
+        );
+      }
+
       const deadline = calculateDeadlineDubai(now);
 
       // Save scale photo proof if provided
@@ -87,6 +94,34 @@ export async function POST(req: NextRequest) {
         }
       }
 
+      // Save digital signature proof if provided
+      let savedSignatureUrl: string | null = null;
+      if (signatureDataUrl) {
+        try {
+          savedSignatureUrl = await saveNewImage({
+            base64Data: signatureDataUrl,
+            folder: "signatures",
+            fileName: `signature_day1_${user.id}_${Date.now()}`,
+          });
+        } catch (sigErr) {
+          console.error("Failed to save Day-1 digital signature image:", sigErr);
+        }
+      }
+
+      // Save Emirates ID photo proof if provided
+      let savedEmiratesIdPhotoUrl: string | null = null;
+      if (emiratesIdPhoto) {
+        try {
+          savedEmiratesIdPhotoUrl = await saveNewImage({
+            base64Data: emiratesIdPhoto,
+            folder: "emirates_ids",
+            fileName: `emirates_id_${user.id}_${Date.now()}`,
+          });
+        } catch (idErr) {
+          console.error("Failed to save Day-1 Emirates ID photo:", idErr);
+        }
+      }
+
       // Execute atomic transaction: create WeighIn and update User status
       const [weighIn, updatedUser] = await prisma.$transaction([
         prisma.weighIn.create({
@@ -97,8 +132,10 @@ export async function POST(req: NextRequest) {
             branchId: effectiveBranchId,
             loggedByStaffId: session.userId,
             photoUrl: scalePhotoUrl,
+            emiratesIdPhotoUrl: savedEmiratesIdPhotoUrl || emiratesIdPhoto || null,
+            signatureUrl: savedSignatureUrl || signatureDataUrl,
           },
-          include: { branch: true },
+          include: { branch: true, loggedByStaff: true },
         }),
         prisma.user.update({
           where: { id: user.id },
@@ -144,7 +181,7 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // Strict Day 30 or Day 31 Return Window Validation
+      // Strict 30-Day Return Window Validation
       const windowInfo = getFinalWeighInWindow(user.day1Date, user.deadlineDate);
       if (windowInfo.status === "EXPIRED") {
         await prisma.user.update({
