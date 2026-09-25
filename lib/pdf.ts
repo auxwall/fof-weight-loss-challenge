@@ -191,8 +191,9 @@ export async function generateChallengePdf(data: ChallengePdfData): Promise<Uint
   const rightColX = 596;
 
 
-  // Official Stamp (Top of Right Signatory)
-  const stampPath = path.join(process.cwd(), "public", "stamp.png");
+  // Official Stamp (Top of Right Signatory) - Uses the luxury certificate stamp
+  const certStampPath = path.join(process.cwd(), "public", "certificate-stamp.png");
+  const stampPath = fs.existsSync(certStampPath) ? certStampPath : path.join(process.cwd(), "public", "stamp.png");
   if (fs.existsSync(stampPath)) {
     try {
       const stampBytes = fs.readFileSync(stampPath);
@@ -200,8 +201,8 @@ export async function generateChallengePdf(data: ChallengePdfData): Promise<Uint
       const stampW = 160;
       const stampH = (stampW / stampImage.width) * stampImage.height;
 
-      // Slight authentic stamp rotation angle (-4 degrees)
-      const angleDeg = 8;
+      // Authentic clean upright stamp alignment centered above the baseline
+      const angleDeg = 0;
       const angleRad = (angleDeg * Math.PI) / 180;
 
       // Center of the stamp above the signatory baseline
@@ -626,37 +627,72 @@ export async function generateTermsAgreementPdf(data: TermsAgreementPdfData): Pr
     color: cDark,
   });
 
-  // Embed Customer Signature Image if available
-  if (data.signatureDataUrl && data.signatureDataUrl.startsWith("data:image/")) {
+  // Embed Customer Digital Signature Image
+  let embeddedSig = false;
+  if (data.signatureDataUrl && typeof data.signatureDataUrl === "string" && data.signatureDataUrl.trim().length > 0) {
     try {
-      const base64Data = data.signatureDataUrl.replace(/^data:image\/\w+;base64,/, "");
-      const sigBytes = Buffer.from(base64Data, "base64");
-      const isPng = data.signatureDataUrl.includes("image/png");
-      const sigImage = isPng ? await pdfDoc.embedPng(sigBytes) : await pdfDoc.embedJpg(sigBytes);
+      let sigBytes: Buffer | null = null;
+      let isPng = true;
 
-      const targetW = 130;
-      const targetH = Math.min(42, (targetW / sigImage.width) * sigImage.height);
+      if (data.signatureDataUrl.startsWith("data:image/")) {
+        const base64Data = data.signatureDataUrl.replace(/^data:image\/\w+;base64,/, "");
+        sigBytes = Buffer.from(base64Data, "base64");
+        isPng = !data.signatureDataUrl.includes("image/jpeg") && !data.signatureDataUrl.includes("image/jpg");
+      } else {
+        // Resolve from filesystem
+        const rawPath = data.signatureDataUrl.trim();
+        const candidates = [
+          path.join(process.cwd(), "public", rawPath),
+          path.join(process.cwd(), "public", rawPath.replace(/^\//, "")),
+          path.join(process.cwd(), rawPath),
+          path.join(process.cwd(), rawPath.replace(/^\//, "")),
+          rawPath,
+        ];
 
-      page.drawImage(sigImage, {
-        x: leftSigX,
-        y: sigSectionY - 48,
-        width: targetW,
-        height: targetH,
-      });
+        for (const cand of candidates) {
+          if (fs.existsSync(cand)) {
+            sigBytes = fs.readFileSync(cand);
+            isPng = !cand.toLowerCase().endsWith(".jpg") && !cand.toLowerCase().endsWith(".jpeg");
+            break;
+          }
+        }
+      }
+
+      if (sigBytes && sigBytes.length > 0) {
+        let sigImage: any = null;
+        try {
+          sigImage = isPng ? await pdfDoc.embedPng(sigBytes) : await pdfDoc.embedJpg(sigBytes);
+        } catch {
+          // If extension was mismatched, fallback to other format
+          try {
+            sigImage = isPng ? await pdfDoc.embedJpg(sigBytes) : await pdfDoc.embedPng(sigBytes);
+          } catch (embedFallbackErr) {
+            console.error("Signature image format fallback failed:", embedFallbackErr);
+          }
+        }
+
+        if (sigImage) {
+          const targetW = 140;
+          const targetH = Math.min(46, (targetW / sigImage.width) * sigImage.height);
+
+          page.drawImage(sigImage, {
+            x: leftSigX,
+            y: sigSectionY - 50,
+            width: targetW,
+            height: targetH,
+          });
+          embeddedSig = true;
+        }
+      }
     } catch (sigErr) {
       console.error("Could not embed participant signature in Terms PDF:", sigErr);
-      page.drawText("(Digitally Signed on Registration / Day-1)", {
-        x: leftSigX,
-        y: sigSectionY - 30,
-        size: 7.5,
-        font: fontItalic,
-        color: cRed,
-      });
     }
-  } else {
-    page.drawText("(Digitally Signed on Registration / Day-1)", {
+  }
+
+  if (!embeddedSig) {
+    page.drawText("(Digitally Signed on Day-1 Weigh-In)", {
       x: leftSigX,
-      y: sigSectionY - 30,
+      y: sigSectionY - 32,
       size: 7.5,
       font: fontItalic,
       color: cRed,

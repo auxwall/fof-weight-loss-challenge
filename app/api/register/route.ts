@@ -88,30 +88,7 @@ export async function POST(req: NextRequest) {
     const qrBuffer = await generateQrBuffer(user.id);
     const qrDataUrl = await generateQrDataUrl(user.id);
 
-    // 7. Generate official Terms & Conditions Agreement PDF
-    let termsPdf: Uint8Array | null = null;
-    try {
-      termsPdf = await generateTermsAgreementPdf({
-        userName: user.name,
-        userId: user.id,
-        emiratesId: user.emiratesId,
-        mobile: user.mobile,
-        email: user.email,
-        branchName: branch.label,
-        day1WeightKg: null,
-        day1Date: user.createdAt,
-        deadlineDate: null,
-        signatureDataUrl: null,
-        staffName: "Online Registration",
-        rulesText: settings?.rulesText,
-        termsText: settings?.termsText,
-        isRegistration: true,
-      });
-    } catch (pdfErr) {
-      console.error("Terms & Conditions PDF generation failed on registration:", pdfErr);
-    }
-
-    // 8. Send Email #1 with QR code and Terms PDF attachment (non-blocking failure)
+    // 7. Send Email #1 with QR code Challenge Pass (non-blocking failure)
     try {
       await sendRegistrationEmail({
         email: user.email,
@@ -119,7 +96,6 @@ export async function POST(req: NextRequest) {
         userId: user.id,
         branchName: branch.label,
         qrBuffer,
-        pdfBytes: termsPdf,
         emiratesId: user.emiratesId,
         mobile: user.mobile,
       });

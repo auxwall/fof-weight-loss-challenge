@@ -83,35 +83,7 @@ export async function sendRegistrationEmail(params: {
   mobile?: string;
 }): Promise<{ success: boolean; mocked?: boolean }> {
   const { email, name, userId, branchName, qrBuffer } = params;
-  let pdfBytes = params.pdfBytes;
-
-  // Auto-generate Terms & Conditions PDF if not provided
-  if (!pdfBytes) {
-    try {
-      const [settings, userRecord] = await Promise.all([
-        prisma.challengeSettings.findUnique({ where: { id: "singleton" } }),
-        prisma.user.findUnique({ where: { id: userId } }),
-      ]);
-      pdfBytes = await generateTermsAgreementPdf({
-        userName: name,
-        userId: userId,
-        emiratesId: userRecord?.emiratesId || params.emiratesId || "Registered Participant",
-        mobile: userRecord?.mobile || params.mobile || "",
-        email: email,
-        branchName: branchName,
-        day1WeightKg: null,
-        day1Date: userRecord?.createdAt || new Date(),
-        deadlineDate: null,
-        signatureDataUrl: null,
-        staffName: "Online Registration",
-        rulesText: settings?.rulesText,
-        termsText: settings?.termsText,
-        isRegistration: true,
-      });
-    } catch (pdfErr) {
-      console.error("Auto-generation of registration terms PDF failed:", pdfErr);
-    }
-  }
+  const pdfBytes = params.pdfBytes || null;
 
   const transporter = createTransporter();
   const logoAttachment = getLogoAttachment();
@@ -572,7 +544,7 @@ export async function sendDay1Email(params: {
 
     if (pdfBytes) {
       attachments.push({
-        filename: `ChallengeAgreement-${userId}.pdf`,
+        filename: `TermsAndConditions-Agreement-${userId}.pdf`,
         content: Buffer.from(pdfBytes),
         contentType: "application/pdf",
       });

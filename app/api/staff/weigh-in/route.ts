@@ -191,7 +191,7 @@ export async function POST(req: NextRequest) {
           day1WeightKg: weightNum,
           day1Date: now,
           deadlineDate: deadline,
-          signatureDataUrl: signatureDataUrl,
+          signatureDataUrl: signatureDataUrl || savedSignatureUrl,
           staffName: session.name || session.username,
           rulesText: settings?.rulesText,
           termsText: settings?.termsText,
@@ -214,7 +214,7 @@ export async function POST(req: NextRequest) {
           pdfBytes: termsPdfBytes,
           emiratesId: user.emiratesId,
           mobile: user.mobile,
-          signatureDataUrl: signatureDataUrl,
+          signatureDataUrl: signatureDataUrl || savedSignatureUrl,
           staffName: session.name || session.username,
         });
       } catch (err) {
