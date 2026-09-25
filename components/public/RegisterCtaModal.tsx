@@ -36,7 +36,7 @@ export default function RegisterCtaModal({
       return;
     }
 
-    handleClose();
+    // handleClose();
     router.push("/register");
   };
 
@@ -158,23 +158,21 @@ export default function RegisterCtaModal({
                 setIsConfirmed(!isConfirmed);
                 setHasAttempted(false);
               }}
-              className={`p-3.5 sm:p-4 rounded-2xl border transition-all cursor-pointer select-none mb-5 ${
-                isConfirmed
+              className={`p-3.5 sm:p-4 rounded-2xl border transition-all cursor-pointer select-none mb-5 ${isConfirmed
                   ? "bg-rose-950/20 border-rose-500/60 shadow-sm"
                   : hasAttempted
-                  ? "bg-red-950/30 border-gymRed animate-shake"
-                  : "bg-zinc-900/90 border-zinc-800 hover:border-zinc-700"
-              }`}
+                    ? "bg-red-950/30 border-gymRed animate-shake"
+                    : "bg-zinc-900/90 border-zinc-800 hover:border-zinc-700"
+                }`}
             >
               <div className="flex items-start gap-3">
                 <div
-                  className={`w-5 h-5 rounded-lg border flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
-                    isConfirmed
+                  className={`w-5 h-5 rounded-lg border flex items-center justify-center shrink-0 mt-0.5 transition-colors ${isConfirmed
                       ? "bg-gymRed border-gymRed text-white"
                       : hasAttempted
-                      ? "border-gymRed bg-zinc-950"
-                      : "border-zinc-700 bg-zinc-950"
-                  }`}
+                        ? "border-gymRed bg-zinc-950"
+                        : "border-zinc-700 bg-zinc-950"
+                    }`}
                 >
                   {isConfirmed && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                 </div>
@@ -209,11 +207,10 @@ export default function RegisterCtaModal({
               <button
                 type="button"
                 onClick={handleProceed}
-                className={`flex-1 py-3 px-5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 group ${
-                  isConfirmed
+                className={`flex-1 py-3 px-5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 group ${isConfirmed
                     ? "bg-gymRed hover:bg-gymRed-hover text-white shadow-red-glow cursor-pointer"
                     : "bg-zinc-800 hover:bg-zinc-700 text-zinc-300 cursor-pointer"
-                }`}
+                  }`}
               >
                 <span>Confirm &amp; Proceed to Registration</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

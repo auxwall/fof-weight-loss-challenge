@@ -20,7 +20,10 @@ export async function GET() {
       orderBy: { position: "asc" },
     });
 
-    // 2. Fetch all completed candidates
+    // 2. Total registered count (all registered participants in challenge)
+    const totalRegisteredCount = await prisma.user.count();
+
+    // 3. Fetch all completed candidates
     const allUsers = await prisma.user.findMany({
       where: {
         status: { not: "DISQUALIFIED" },
@@ -131,6 +134,7 @@ export async function GET() {
         });
       }
     } else {
+      // If no official winners locked yet, show top candidates in leaderboard without locking winners
       completedCandidates.slice(0, 10).forEach((c, idx) => {
         const rank = idx + 1;
         top10.push({
@@ -144,16 +148,6 @@ export async function GET() {
           prizeAed: prizeLookup[rank],
           isOfficialWinner: false,
         });
-
-        if (rank <= 3 && !winnersMap[rank]) {
-          winnersMap[rank] = {
-            position: rank,
-            name: c.name,
-            prizeAed: prizeLookup[rank],
-            kgLost: c.kgLost,
-            branchLabel: c.branchLabel,
-          };
-        }
       });
     }
 
@@ -162,6 +156,7 @@ export async function GET() {
         success: true,
         winners: winnersMap,
         top10,
+        totalRegistered: totalRegisteredCount,
         timestamp: Date.now(),
       },
       {

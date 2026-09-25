@@ -23,6 +23,31 @@ export const RegisterSchema = z.object({
       }
     ),
 
+  emiratesIdExpiry: z
+    .string({ error: "Emirates ID expiry date is required." })
+    .trim()
+    .min(1, "Emirates ID expiry date is required.")
+    .refine(
+      (val) => {
+        const expiryDate = new Date(val);
+        if (isNaN(expiryDate.getTime())) return false;
+
+        // Current date in UTC/Dubai start of day
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Calculate cut-off: 30 days ago
+        const maxExpiredDate = new Date(today);
+        maxExpiredDate.setDate(maxExpiredDate.getDate() - 30);
+
+        // Expiry date must not be more than 30 days in the past
+        return expiryDate >= maxExpiredDate;
+      },
+      {
+        message: "Emirates ID has expired by more than 30 days. Registration is not permitted.",
+      }
+    ),
+
   mobile: z
     .string({ error: "Mobile number is required." })
     .trim()

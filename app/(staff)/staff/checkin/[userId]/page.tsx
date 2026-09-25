@@ -101,6 +101,7 @@ export default async function CheckinPage({ params }: CheckinPageProps) {
         status: computedStatus,
         day1Date: user.day1Date,
         deadlineDate: user.deadlineDate,
+        emiratesIdExpiry: user.emiratesIdExpiry ? user.emiratesIdExpiry.toISOString() : null,
       }}
       day1WeighIn={day1WeighIn}
       finalWeighIn={finalWeighIn}

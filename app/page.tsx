@@ -172,7 +172,7 @@ export default async function HomePage() {
               <p className="text-zinc-400 text-xs leading-relaxed">
                 Venue: <span className="text-white font-semibold">Face Off Fitness Al Hamriya Club</span>.
                 <br />
-                Time: <span className="text-gymRed font-bold">3:00 PM</span>.
+                Date & Time: <span className="text-gymRed font-bold">29th Nov 2026, 3:00 PM</span>.
                 <br />
                 Official announcement of the weight loss challenge winners!
               </p>

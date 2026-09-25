@@ -14,7 +14,17 @@ interface RegisterFormProps { branches: Branch[]; }
 export default function RegisterForm({ branches }: RegisterFormProps) {
   const router = useRouter();
 
-  const [formData, setFormData] = useState({ name: "", emiratesId: "", dob: "", mobile: "", email: "", gender: "MALE", branchId: "", termsAccepted: false});
+  const [formData, setFormData] = useState({
+    name: "",
+    emiratesId: "",
+    emiratesIdExpiry: "",
+    dob: "",
+    mobile: "",
+    email: "",
+    gender: "MALE",
+    branchId: "",
+    termsAccepted: false,
+  });
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -133,6 +143,56 @@ export default function RegisterForm({ branches }: RegisterFormProps) {
           <p className="text-[11px] text-gymRed mt-1 font-medium">{fieldErrors.emiratesId}</p>
         ) : (
           <span className="text-[10px] text-zinc-400 mt-1 block">Masked by default in logs for your privacy.</span>
+        )}
+      </div>
+
+      {/* Emirates ID Expiry Date */}
+      <div>
+        <div className="flex items-center justify-between mb-1.5">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-300">
+            Emirates ID Expiry Date <span className="text-gymRed">*</span>
+          </label>
+          <span className="text-[10px] text-zinc-400 font-medium">Valid or expired within 30 days</span>
+        </div>
+        <div
+          className={`relative w-full bg-zinc-900 border rounded-xl pl-10 pr-3.5 py-3 flex items-center transition-all cursor-pointer ${
+            fieldErrors.emiratesIdExpiry
+              ? "border-gymRed ring-1 ring-gymRed"
+              : "border-zinc-700/80 focus-within:border-yellow-600/50 focus-within:ring-0.1 focus-within:ring-gymRed"
+          }`}
+        >
+          <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
+          <span
+            className={`text-sm select-none truncate ${
+              formData.emiratesIdExpiry ? "text-white font-medium" : "text-zinc-500"
+            }`}
+          >
+            {formData.emiratesIdExpiry
+              ? dayjs(formData.emiratesIdExpiry).isValid()
+                ? dayjs(formData.emiratesIdExpiry).format("DD MMM YYYY")
+                : formData.emiratesIdExpiry
+              : "Select Emirates ID Expiry Date"}
+          </span>
+          <ChevronDown className="ml-auto w-4 h-4 text-zinc-500 pointer-events-none shrink-0" />
+
+          {/* Native date picker overlay restricted to up to 30 days ago */}
+          <input
+            type="date"
+            name="emiratesIdExpiry"
+            required
+            min={dayjs().subtract(30, "day").format("YYYY-MM-DD")}
+            value={formData.emiratesIdExpiry}
+            onChange={handleChange}
+            onClick={(e) => {
+              try {
+                (e.target as HTMLInputElement & { showPicker?: () => void }).showPicker?.();
+              } catch {}
+            }}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 text-base"
+          />
+        </div>
+        {fieldErrors.emiratesIdExpiry && (
+          <p className="text-[11px] text-gymRed mt-1 font-medium">{fieldErrors.emiratesIdExpiry}</p>
         )}
       </div>
 

@@ -61,22 +61,105 @@ export default function WinnerSelector({
   const isUnlocked = initialAllowed || adminOverride;
 
   const handleAssign = (position: number, candidate: Candidate) => {
-    setWinners((prev) => ({
-      ...prev,
-      [position]: {
+    // If already assigned to this position, deselect it
+    if (winners[position]?.userId === candidate.userId) {
+      handleDeselect(position);
+      return;
+    }
+
+    setWinners((prev) => {
+      const next = { ...prev };
+      // Remove candidate from any other position first
+      for (const pos of [1, 2, 3]) {
+        if (next[pos]?.userId === candidate.userId) {
+          delete next[pos];
+        }
+      }
+      next[position] = {
         position,
         userId: candidate.userId,
         name: candidate.name,
         prizeAed: position === 1 ? 10000 : position === 2 ? 5000 : 3000,
         kgLost: candidate.kgLost,
         branchLabel: candidate.branchLabel,
-      },
-    }));
+      };
+      return next;
+    });
+  };
+
+  const handleDeselect = async (position: number) => {
+    setWinners((prev) => {
+      const next = { ...prev };
+      delete next[position];
+      return next;
+    });
+
+    try {
+      await fetch(`/api/admin/winners?position=${position}`, {
+        method: "DELETE",
+      });
+    } catch (e) {
+      console.error("Failed to delete winner from backend:", e);
+    }
+  };
+
+  const handleClearAllWinners = async () => {
+    if (!confirm("Are you sure you want to deselect and clear all winners?")) return;
+    setWinners({});
+    setShowCelebration(false);
+    try {
+      await fetch("/api/admin/winners", {
+        method: "DELETE",
+      });
+    } catch (e) {
+      console.error("Failed to clear all winners:", e);
+    }
+  };
+
+  const [savedSuccess, setSavedSuccess] = useState<string | null>(null);
+
+  const handleSaveCurrentSelection = async () => {
+    setError(null);
+    setSavedSuccess(null);
+    setSaving(true);
+
+    try {
+      const payload: { position: number; userId: string }[] = [];
+      for (const pos of [1, 2, 3]) {
+        if (winners[pos]) {
+          payload.push({ position: pos, userId: winners[pos].userId });
+        }
+      }
+
+      const res = await fetch("/api/admin/winners", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ winners: payload }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Failed to update winners.");
+        setSaving(false);
+        return;
+      }
+
+      setSavedSuccess(
+        payload.length === 0
+          ? "All winners deselected and cleared. Screen updated to 'To Be Announced'."
+          : `Saved ${payload.length} winner(s). Screen updated immediately.`
+      );
+      setTimeout(() => setSavedSuccess(null), 4000);
+    } catch {
+      setError("Network error while saving.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleConfirmWinners = async () => {
     if (!winners[1] || !winners[2] || !winners[3]) {
-      setError("Please select all 3 winners (1st, 2nd, and 3rd place) before confirming.");
+      setError("Please select all 3 winners (1st, 2nd, and 3rd place) before revealing podium.");
       return;
     }
 
@@ -173,7 +256,54 @@ export default function WinnerSelector({
         </div>
       )}
 
-      {/* Selected Winner Slots */}
+      {savedSuccess && (
+        <div className="p-3.5 rounded-xl bg-emerald-950/50 border border-emerald-500/40 text-emerald-200 text-xs flex items-center gap-2 animate-fade-in">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>{savedSuccess}</span>
+        </div>
+      )}
+
+      {/* Selected Winner Slots & Actions Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-surface-card p-3.5 rounded-2xl border border-surface-border">
+        <div>
+          <h3 className="text-xs font-bold uppercase tracking-wider text-white">
+            Podium Winners Selection ({Object.keys(winners).length}/3 Selected)
+          </h3>
+          <p className="text-[11px] text-zinc-400">
+            Deselecting winners updates the live screen immediately so no winner is declared until saved again.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {Object.keys(winners).length > 0 && (
+            <button
+              type="button"
+              onClick={handleClearAllWinners}
+              disabled={saving}
+              className="px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-red-400 hover:text-red-300 text-xs font-bold transition-colors"
+            >
+              Deselect All
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={handleSaveCurrentSelection}
+            disabled={saving}
+            className="px-4 py-2 rounded-xl bg-zinc-700 hover:bg-zinc-600 text-white text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-sm"
+          >
+            {saving ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span>Saving...</span>
+              </>
+            ) : (
+              <span>Save & Publish to Live Screen</span>
+            )}
+          </button>
+        </div>
+      </div>
+
       <div className="grid sm:grid-cols-3 gap-3">
         {/* 1st Place Slot */}
         <div
@@ -191,10 +321,10 @@ export default function WinnerSelector({
             {winners[1] && (
               <button
                 type="button"
-                onClick={() => setWinners((p) => { const n = { ...p }; delete n[1]; return n; })}
-                className="text-[10px] text-zinc-500 hover:text-red-400"
+                onClick={() => handleDeselect(1)}
+                className="text-[11px] font-bold text-red-400 hover:text-red-300 px-2 py-0.5 rounded bg-red-950/40 border border-red-800/50 hover:bg-red-900/50 transition-colors"
               >
-                Remove
+                ✕ Deselect
               </button>
             )}
           </div>
@@ -229,10 +359,10 @@ export default function WinnerSelector({
             {winners[2] && (
               <button
                 type="button"
-                onClick={() => setWinners((p) => { const n = { ...p }; delete n[2]; return n; })}
-                className="text-[10px] text-zinc-500 hover:text-red-400"
+                onClick={() => handleDeselect(2)}
+                className="text-[11px] font-bold text-red-400 hover:text-red-300 px-2 py-0.5 rounded bg-red-950/40 border border-red-800/50 hover:bg-red-900/50 transition-colors"
               >
-                Remove
+                ✕ Deselect
               </button>
             )}
           </div>
@@ -267,10 +397,10 @@ export default function WinnerSelector({
             {winners[3] && (
               <button
                 type="button"
-                onClick={() => setWinners((p) => { const n = { ...p }; delete n[3]; return n; })}
-                className="text-[10px] text-zinc-500 hover:text-red-400"
+                onClick={() => handleDeselect(3)}
+                className="text-[11px] font-bold text-red-400 hover:text-red-300 px-2 py-0.5 rounded bg-red-950/40 border border-red-800/50 hover:bg-red-900/50 transition-colors"
               >
-                Remove
+                ✕ Deselect
               </button>
             )}
           </div>

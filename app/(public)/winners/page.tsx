@@ -16,29 +16,30 @@ export const metadata: Metadata = {
 
 export default async function PublicWinnersTvPage() {
   // 1. Fetch official locked winners if any exist
-  const existingWinners = await prisma.winner.findMany({
-    include: {
-      user: {
-        include: {
-          registeredBranch: true,
-          weighIns: true,
+  const [existingWinners, totalRegisteredCount, allUsers] = await Promise.all([
+    prisma.winner.findMany({
+      include: {
+        user: {
+          include: {
+            registeredBranch: true,
+            weighIns: true,
+          },
         },
       },
-    },
-    orderBy: { position: "asc" },
-  });
-
-  // 2. Fetch all candidates with weigh-ins, excluding users already marked DISQUALIFIED
-  const allUsers = await prisma.user.findMany({
-    where: {
-      status: { not: "DISQUALIFIED" },
-      disqualifiedAt: null,
-    },
-    include: {
-      registeredBranch: true,
-      weighIns: true,
-    },
-  });
+      orderBy: { position: "asc" },
+    }),
+    prisma.user.count(),
+    prisma.user.findMany({
+      where: {
+        status: { not: "DISQUALIFIED" },
+        disqualifiedAt: null,
+      },
+      include: {
+        registeredBranch: true,
+        weighIns: true,
+      },
+    }),
+  ]);
 
   // 3. Strict disqualification filter & calculate verified weight loss
   const completedCandidates = allUsers
@@ -155,7 +156,7 @@ export default async function PublicWinnersTvPage() {
       });
     }
   } else {
-    // If no official winners locked yet, directly rank top completed participants
+    // If no official winners locked yet, directly rank top completed participants in leaderboard only
     completedCandidates.slice(0, 10).forEach((c, idx) => {
       const rank = idx + 1;
       top10.push({
@@ -169,19 +170,14 @@ export default async function PublicWinnersTvPage() {
         prizeAed: prizeLookup[rank],
         isOfficialWinner: false,
       });
-
-      // Populate podium spots 1, 2, 3 for live celebration
-      if (rank <= 3 && !winnersMap[rank]) {
-        winnersMap[rank] = {
-          position: rank,
-          name: c.name,
-          prizeAed: prizeLookup[rank],
-          kgLost: c.kgLost,
-          branchLabel: c.branchLabel,
-        };
-      }
     });
   }
 
-  return <TvWinnerCelebration winners={winnersMap} top10={top10} />;
+  return (
+    <TvWinnerCelebration
+      winners={winnersMap}
+      top10={top10}
+      totalRegistered={totalRegisteredCount}
+    />
+  );
 }

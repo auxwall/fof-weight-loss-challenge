@@ -9,10 +9,24 @@ import ScalePhotoCapture from "@/components/staff/ScalePhotoCapture";
 import PhotoProofModal from "@/components/staff/PhotoProofModal";
 import { maskEmiratesId } from "@/lib/mask";
 import dayjs, { formatDubai, formatDateOnlyDubai, getFinalWeighInWindow, DUBAI_TZ } from "@/lib/dayjs";
-import { ArrowLeft, Eye, EyeOff, Scale, Clock, CheckCircle2, AlertTriangle, FileCheck, Loader2, Award, Camera, PenLine } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, Scale, Clock, CheckCircle2, AlertTriangle, FileCheck, Loader2, Award, Camera, PenLine, QrCode, Scan } from "lucide-react";
 
 interface Branch { id: string; name: string; label: string; }
-interface UserData { id: string; name: string; emiratesId: string; mobile: string; email: string; gender: string; dob?: Date | string | null; branchLabel: string; branchId: string; status: "REGISTERED" | "ACTIVE" | "COMPLETED" | "DISQUALIFIED"; day1Date?: Date | string | null; deadlineDate: Date | string | null; }
+interface UserData {
+  id: string;
+  name: string;
+  emiratesId: string;
+  emiratesIdExpiry?: Date | string | null;
+  mobile: string;
+  email: string;
+  gender: string;
+  dob?: Date | string | null;
+  branchLabel: string;
+  branchId: string;
+  status: "REGISTERED" | "ACTIVE" | "COMPLETED" | "DISQUALIFIED";
+  day1Date?: Date | string | null;
+  deadlineDate: Date | string | null;
+}
 interface WeighInRecord { id: string; type: string; weightKg: number; createdAt: Date | string; photoUrl?: string | null; personScalePhotoUrl?: string | null; emiratesIdPhotoUrl?: string | null; signatureUrl?: string | null; branch: { label: string }; loggedByStaff: { username: string; name?: string | null }; }
 interface CheckinClientProps { user: UserData; day1WeighIn?: WeighInRecord | null; finalWeighIn: WeighInRecord | null; daysRemaining: { daysLeft: number; isExpired: boolean; label: string } | null; branches: Branch[]; staffBranchId?: string | null; staffName: string; }
 
@@ -220,7 +234,16 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
             <ArrowLeft className="w-4 h-4" />
             <span>Floor Search</span>
           </Link>
-          <Logo size="sm" showText={false} />
+          <div className="flex items-center gap-2">
+            <Link
+              href="/staff/scan"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gymRed hover:bg-gymRed-hover text-white text-xs font-bold uppercase tracking-wider transition-colors shadow-sm shadow-red-500/20"
+            >
+              <Scan className="w-3.5 h-3.5" />
+              <span>Verify Next User</span>
+            </Link>
+            <Logo size="sm" showText={false} />
+          </div>
         </div>
 
         {/* Participant Header Card */}
@@ -275,6 +298,17 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
             </div>
 
             <div>
+              <span className="text-[10px] text-zinc-400 uppercase block">Emirates ID Expiry</span>
+              {user.emiratesIdExpiry ? (
+                <span className="text-zinc-200 font-mono">
+                  {formatDateOnlyDubai(user.emiratesIdExpiry)}
+                </span>
+              ) : (
+                <span className="text-zinc-500">—</span>
+              )}
+            </div>
+
+            <div>
               <span className="text-[10px] text-zinc-400 uppercase block">Mobile</span>
               <span className="text-zinc-200 font-mono">{user.mobile}</span>
             </div>
@@ -307,9 +341,27 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
         )}
 
         {successMessage && (
-          <div className="p-3.5 rounded-xl bg-emerald-950/50 border border-emerald-500/40 text-emerald-200 text-xs flex items-start gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-            <span>{successMessage}</span>
+          <div className="p-4 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-200 text-xs space-y-3">
+            <div className="flex items-start gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+              <span className="font-semibold text-white">{successMessage}</span>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-emerald-500/20">
+              <Link
+                href="/staff/scan"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-xs font-black uppercase tracking-wider transition-all shadow-md"
+              >
+                <Scan className="w-4 h-4" />
+                <span>Verify Next User (Scan QR)</span>
+              </Link>
+              <Link
+                href="/staff/dashboard"
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-xs font-semibold transition-colors"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Back to Dashboard</span>
+              </Link>
+            </div>
           </div>
         )}
 
@@ -369,6 +421,24 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
             {/* Security Callout */}
             <div className="p-3.5 bg-zinc-950/80 rounded-xl border border-zinc-800/80 text-[11px] text-zinc-400 text-left leading-relaxed">
               🔒 <strong className="text-zinc-300">Final weigh-in locked:</strong> Day 30 weigh-in fields will only become available when this participant returns to a club at the end of their challenge.
+            </div>
+
+            {/* Quick Actions to Scan Next */}
+            <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-2">
+              <Link
+                href="/staff/scan"
+                className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-gymRed hover:bg-gymRed-hover text-white text-xs font-bold uppercase tracking-wider transition-all shadow-red-glow flex items-center justify-center gap-2"
+              >
+                <Scan className="w-4 h-4" />
+                <span>Verify Next User (Scan QR)</span>
+              </Link>
+              <Link
+                href="/staff/dashboard"
+                className="w-full sm:w-auto py-3 px-4 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 text-xs font-semibold uppercase tracking-wider transition-colors flex items-center justify-center gap-2"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Floor Search</span>
+              </Link>
             </div>
           </div>
         ) : (
@@ -1107,6 +1177,24 @@ export default function CheckinClient({ user: initialUser, day1WeighIn: initialD
                       </div>
                     </div>
                   )}
+                </div>
+
+                {/* Quick Actions after Final Weigh-in Completed */}
+                <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-3 border-t border-zinc-800">
+                  <Link
+                    href="/staff/scan"
+                    className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-gymRed hover:bg-gymRed-hover text-white text-xs font-bold uppercase tracking-wider transition-all shadow-red-glow flex items-center justify-center gap-2"
+                  >
+                    <Scan className="w-4 h-4" />
+                    <span>Verify Next User (Scan QR)</span>
+                  </Link>
+                  <Link
+                    href="/staff/dashboard"
+                    className="w-full sm:w-auto py-3 px-4 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 text-xs font-semibold uppercase tracking-wider transition-colors flex items-center justify-center gap-2"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    <span>Floor Search</span>
+                  </Link>
                 </div>
               </div>
             )}

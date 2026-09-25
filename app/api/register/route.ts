@@ -6,6 +6,7 @@ import { sendRegistrationEmail } from "@/lib/mailer";
 import { generateTermsAgreementPdf } from "@/lib/pdf";
 import { RegisterSchema } from "@/lib/validation";
 import { Gender } from "@prisma/client";
+import { broadcastWinnersUpdate } from "@/lib/sse";
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,7 +19,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: firstIssue?.message || "Invalid registration data." },{ status: 400 });
     }
 
-    const { name, emiratesId, mobile, email, gender, dob, branchId } = parsed.data;
+    const { name, emiratesId, emiratesIdExpiry, mobile, email, gender, dob, branchId } = parsed.data;
 
     // 2. Check Registration Window in Dubai Time
     const settings = await prisma.challengeSettings.findUnique({ where: { id: "singleton" }, });
@@ -75,6 +76,7 @@ export async function POST(req: NextRequest) {
         id: newUserId,
         name: name.trim(),
         emiratesId: cleanEmiratesId,
+        emiratesIdExpiry: emiratesIdExpiry ? new Date(emiratesIdExpiry) : null,
         mobile: cleanMobile,
         email: cleanEmail,
         gender: gender === "FEMALE" ? Gender.FEMALE : Gender.MALE,
@@ -101,6 +103,13 @@ export async function POST(req: NextRequest) {
       });
     } catch (mailErr) {
       console.error("Email sending failed during registration:", mailErr);
+    }
+
+    // Broadcast live registration counter update
+    try {
+      broadcastWinnersUpdate({ action: "NEW_REGISTRATION", timestamp: Date.now() });
+    } catch (e) {
+      console.error("Failed to broadcast new registration:", e);
     }
 
     return NextResponse.json({ success: true, userId: user.id, name: user.name, email: user.email, qrDataUrl, branchLabel: branch.label });

@@ -70,7 +70,7 @@ export default async function AdminWinnersPage() {
             </h1>
           </div>
           <a href="/winners" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 py-2 px-4 rounded-xl bg-gymRed hover:bg-gymRed-hover text-white text-xs font-bold uppercase transition-all shadow-md shrink-0 w-fit" >
-            <span>Open TV Display View</span>
+            <span>Open Live Display Screen</span>
           </a>
         </div>
 

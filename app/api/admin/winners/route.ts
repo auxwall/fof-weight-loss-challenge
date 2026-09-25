@@ -101,8 +101,8 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { winners } = body; // Array of { position: 1|2|3, userId: string }
 
-    if (!winners || !Array.isArray(winners) || winners.length === 0) {
-      return NextResponse.json({ error: "Winners list is required." }, { status: 400 });
+    if (!winners || !Array.isArray(winners)) {
+      return NextResponse.json({ error: "Winners list must be an array." }, { status: 400 });
     }
 
     const prizeLookup: Record<number, number> = {
@@ -111,8 +111,26 @@ export async function POST(req: NextRequest) {
       3: 3000,
     };
 
+    // If empty array, clear all winners in database
+    if (winners.length === 0) {
+      await prisma.winner.deleteMany({});
+      try {
+        broadcastWinnersUpdate({ action: "WINNERS_UPDATED", timestamp: Date.now() });
+      } catch (e) {
+        console.error("Failed to broadcast winners update:", e);
+      }
+      return NextResponse.json({ success: true, winners: [] });
+    }
+
     // Upsert winners in transaction
     const results = [];
+    const validPositions = winners.map((w: any) => w.position);
+    // Delete positions not in new selection
+    await prisma.winner.deleteMany({
+      where: {
+        position: { notIn: validPositions },
+      },
+    });
     for (const item of winners) {
       const { position, userId } = item;
       const user = await prisma.user.findUnique({
@@ -157,3 +175,43 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Failed to save winners." }, { status: 500 });
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const session = await getSession();
+    if (!session || session.role !== "SUPER_ADMIN") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const positionParam = searchParams.get("position");
+    const userIdParam = searchParams.get("userId");
+
+    if (positionParam) {
+      const position = parseInt(positionParam, 10);
+      await prisma.winner.deleteMany({
+        where: { position },
+      });
+    } else if (userIdParam) {
+      await prisma.winner.deleteMany({
+        where: { userId: userIdParam },
+      });
+    } else {
+      // Clear all winners if no specific position or userId provided
+      await prisma.winner.deleteMany({});
+    }
+
+    // Trigger instant real-time live push to TV displays
+    try {
+      broadcastWinnersUpdate({ action: "WINNERS_UPDATED", timestamp: Date.now() });
+    } catch (e) {
+      console.error("Failed to broadcast winners update:", e);
+    }
+
+    return NextResponse.json({ success: true, message: "Winner(s) deselected successfully." });
+  } catch (error) {
+    console.error("Winners DELETE error:", error);
+    return NextResponse.json({ error: "Failed to deselect winner." }, { status: 500 });
+  }
+}
+
