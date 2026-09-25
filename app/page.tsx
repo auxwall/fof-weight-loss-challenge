@@ -1,8 +1,8 @@
-import Link from "next/link";
+import RegisterCtaModal from "@/components/public/RegisterCtaModal";
 import Logo from "@/components/Logo";
 import prisma from "@/lib/prisma";
 import { isRegistrationWindowOpen, formatDateOnlyDubai } from "@/lib/dayjs";
-import { MapPin, ArrowRight, Trophy, Medal, Award, ExternalLink } from "lucide-react";
+import { MapPin, Trophy, Medal, Award, ExternalLink } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -98,10 +98,7 @@ export default async function HomePage() {
               <span>Make sure to follow <strong className="text-white decoration-pink-500/60 underline-offset-2">@faceoff.fitness</strong> on Instagram to validate your registration</span>
             </a>
 
-            <Link href="/register" className="w-full py-4 px-6 rounded-xl bg-gymRed hover:bg-gymRed-hover text-white font-bold text-base tracking-wide uppercase transition-all shadow-red-glow flex items-center justify-center gap-2 group" >
-              <span>Register Now</span>
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
+            <RegisterCtaModal />
             <span className="text-xs text-zinc-400">
               Registration closes on {settings?.registrationEnd ? formatDateOnlyDubai(settings.registrationEnd) : "soon"}
             </span>

@@ -212,6 +212,10 @@ export async function POST(req: NextRequest) {
           deadlineDate: deadline,
           rulesText: settings?.rulesText,
           pdfBytes: termsPdfBytes,
+          emiratesId: user.emiratesId,
+          mobile: user.mobile,
+          signatureDataUrl: signatureDataUrl,
+          staffName: session.name || session.username,
         });
       } catch (err) {
         console.error("Day-1 email dispatch failed:", err);

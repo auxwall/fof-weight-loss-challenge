@@ -266,13 +266,14 @@ export interface TermsAgreementPdfData {
   mobile: string;
   email: string;
   branchName: string;
-  day1WeightKg: number;
-  day1Date: Date | string;
-  deadlineDate: Date | string;
+  day1WeightKg?: number | null;
+  day1Date?: Date | string | null;
+  deadlineDate?: Date | string | null;
   signatureDataUrl?: string | null;
   staffName?: string | null;
   rulesText?: string | null;
   termsText?: string | null;
+  isRegistration?: boolean;
 }
 
 export async function generateTermsAgreementPdf(data: TermsAgreementPdfData): Promise<Uint8Array> {
@@ -342,6 +343,19 @@ export async function generateTermsAgreementPdf(data: TermsAgreementPdfData): Pr
   const rulesText = (data.rulesText && data.rulesText.trim()) || defaultRules;
   const termsText = (data.termsText && data.termsText.trim()) || defaultTerms;
 
+  // Embed logo once
+  const logoPath = path.join(process.cwd(), "public", "logo.png");
+  let logoImage: any = null;
+  let logoDrawW = 105;
+  let logoDrawH = 30;
+  if (fs.existsSync(logoPath)) {
+    try {
+      const logoBytes = fs.readFileSync(logoPath);
+      logoImage = await pdfDoc.embedPng(logoBytes);
+      logoDrawH = (logoDrawW / logoImage.width) * logoImage.height;
+    } catch {}
+  }
+
   let page = pdfDoc.addPage([PAGE_W, PAGE_H]);
   let y = PAGE_H - 36;
 
@@ -356,18 +370,9 @@ export async function generateTermsAgreementPdf(data: TermsAgreementPdfData): Pr
       color: cRed,
     });
 
-    const logoPath = path.join(process.cwd(), "public", "logo.png");
-    if (fs.existsSync(logoPath)) {
-      try {
-        const logoBytes = fs.readFileSync(logoPath);
-        const logoImage = pdfDoc.embedPng(logoBytes);
-        // Synchronous embed not allowed, so logo already embedded or drawn
-      } catch {}
-    }
-
     if (pageNum === 1) {
       // First page title
-      const titleText = "TERMS & CONDITIONS & OFFICIAL RULES";
+      const titleText = data.day1WeightKg ? "DAY-1 CHALLENGE AGREEMENT & RULES" : "TERMS & CONDITIONS & OFFICIAL RULES";
       const titleW = fontBold.widthOfTextAtSize(titleText, 12);
       page.drawText(titleText, {
         x: PAGE_W - marginX - titleW,
@@ -387,7 +392,8 @@ export async function generateTermsAgreementPdf(data: TermsAgreementPdfData): Pr
         color: cRed,
       });
 
-      const refText = `User ID: ${data.userId} · Date: ${formatDubai(data.day1Date, "DD MMM YYYY")}`;
+      const dateStr = data.day1Date ? formatDubai(data.day1Date, "DD MMM YYYY") : formatDubai(new Date(), "DD MMM YYYY");
+      const refText = `User ID: ${data.userId} · Date: ${dateStr}`;
       const refW = fontRegular.widthOfTextAtSize(refText, 8);
       page.drawText(refText, {
         x: PAGE_W - marginX - refW,
@@ -423,23 +429,15 @@ export async function generateTermsAgreementPdf(data: TermsAgreementPdfData): Pr
     }
   };
 
-  // Embed logo for page 1
-  const logoPath = path.join(process.cwd(), "public", "logo.png");
-  if (fs.existsSync(logoPath)) {
-    try {
-      const logoBytes = fs.readFileSync(logoPath);
-      const logoImage = await pdfDoc.embedPng(logoBytes);
-      const logoW = 105;
-      const logoH = (logoW / logoImage.width) * logoImage.height;
-      page.drawImage(logoImage, {
-        x: marginX,
-        y: y - logoH,
-        width: logoW,
-        height: logoH,
-      });
-    } catch {
-      page.drawText("FACE OFF FITNESS", { x: marginX, y: y - 16, size: 14, font: fontBold, color: cRed });
-    }
+  if (logoImage) {
+    page.drawImage(logoImage, {
+      x: marginX,
+      y: y - logoDrawH,
+      width: logoDrawW,
+      height: logoDrawH,
+    });
+  } else {
+    page.drawText("FACE OFF FITNESS", { x: marginX, y: y - 16, size: 14, font: fontBold, color: cRed });
   }
 
   drawPageHeader(1);
@@ -481,8 +479,10 @@ export async function generateTermsAgreementPdf(data: TermsAgreementPdfData): Pr
   page.drawText("Emirates ID:", { x: col2X, y: row1Y, size: 7.5, font: fontRegular, color: cGray });
   page.drawText(data.emiratesId, { x: col2X + 54, y: row1Y, size: 7.5, font: fontBold, color: cDark });
 
+  const hasWeight = data.day1WeightKg !== undefined && data.day1WeightKg !== null && !isNaN(Number(data.day1WeightKg));
+  const startingWeightText = hasWeight ? `${Number(data.day1WeightKg).toFixed(3)} kg` : "Pending (Day-1 Visit)";
   page.drawText("Starting Weight:", { x: col3X, y: row1Y, size: 7.5, font: fontRegular, color: cGray });
-  page.drawText(`${Number(data.day1WeightKg).toFixed(3)} kg`, { x: col3X + 68, y: row1Y, size: 8.5, font: fontBold, color: cRed });
+  page.drawText(startingWeightText, { x: col3X + 68, y: row1Y, size: hasWeight ? 8.5 : 7.5, font: fontBold, color: hasWeight ? cRed : cGray });
 
   // Row 2
   page.drawText("Mobile / Phone:", { x: col1X, y: row2Y, size: 7.5, font: fontRegular, color: cGray });
@@ -491,18 +491,21 @@ export async function generateTermsAgreementPdf(data: TermsAgreementPdfData): Pr
   page.drawText("Email Address:", { x: col2X, y: row2Y, size: 7.5, font: fontRegular, color: cGray });
   page.drawText(data.email, { x: col2X + 54, y: row2Y, size: 7.5, font: fontRegular, color: cDark });
 
+  const day1DateDisplay = data.day1Date ? formatDubai(data.day1Date, "DD MMM YYYY") : "Pending Day-1 Visit";
   page.drawText("Day-1 Date:", { x: col3X, y: row2Y, size: 7.5, font: fontRegular, color: cGray });
-  page.drawText(formatDubai(data.day1Date, "DD MMM YYYY"), { x: col3X + 68, y: row2Y, size: 7.5, font: fontBold, color: cDark });
+  page.drawText(day1DateDisplay, { x: col3X + 68, y: row2Y, size: 7.5, font: fontBold, color: cDark });
 
   // Row 3
-  page.drawText("Weigh-In Club:", { x: col1X, y: row3Y, size: 7.5, font: fontRegular, color: cGray });
+  page.drawText("Registered Club:", { x: col1X, y: row3Y, size: 7.5, font: fontRegular, color: cGray });
   page.drawText(data.branchName, { x: col1X + 75, y: row3Y, size: 7.5, font: fontRegular, color: cDark });
 
+  const staffDisplay = data.staffName || (hasWeight ? "Authorized Staff" : "Online Registration");
   page.drawText("Logged By Staff:", { x: col2X, y: row3Y, size: 7.5, font: fontRegular, color: cGray });
-  page.drawText(data.staffName || "Authorized Staff", { x: col2X + 68, y: row3Y, size: 7.5, font: fontRegular, color: cDark });
+  page.drawText(staffDisplay, { x: col2X + 68, y: row3Y, size: 7.5, font: fontRegular, color: cDark });
 
+  const deadlineDisplay = data.deadlineDate ? formatDubai(data.deadlineDate, "DD MMM YYYY") : "30 Days from Day-1";
   page.drawText("Final Window:", { x: col3X, y: row3Y, size: 7.5, font: fontRegular, color: cGray });
-  page.drawText(formatDubai(data.deadlineDate, "DD MMM YYYY"), { x: col3X + 68, y: row3Y, size: 7.5, font: fontBold, color: cRed });
+  page.drawText(deadlineDisplay, { x: col3X + 68, y: row3Y, size: 7.5, font: fontBold, color: cRed });
 
   y -= boxHeight + 14;
 
@@ -673,7 +676,8 @@ export async function generateTermsAgreementPdf(data: TermsAgreementPdfData): Pr
     font: fontBold,
     color: cDark,
   });
-  page.drawText(`Date Signed: ${formatDubai(data.day1Date, "DD MMM YYYY, hh:mm A")}`, {
+  const signedDateText = data.day1Date ? formatDubai(data.day1Date, "DD MMM YYYY, hh:mm A") : formatDubai(new Date(), "DD MMM YYYY, hh:mm A");
+  page.drawText(`Date Signed: ${signedDateText}`, {
     x: leftSigX,
     y: sigSectionY - 74,
     size: 6.5,
@@ -722,7 +726,8 @@ export async function generateTermsAgreementPdf(data: TermsAgreementPdfData): Pr
     font: fontBold,
     color: cDark,
   });
-  page.drawText(`Verified by: ${data.staffName || "Authorized Club Staff"}`, {
+  const verifiedByText = data.staffName || (data.day1WeightKg ? "Authorized Club Staff" : "Online System / Club Staff");
+  page.drawText(`Verified by: ${verifiedByText}`, {
     x: rightSigX,
     y: sigSectionY - 74,
     size: 6.5,

@@ -254,7 +254,7 @@ export default function RegisterForm({ branches }: RegisterFormProps) {
             I agree to the{" "}
             <Link href="/terms" target="_blank" rel="noopener noreferrer" className="text-gymRed hover:text-gymRed-hover underline font-semibold focus:outline-none transition-colors">Terms & Conditions</Link>{" "}
             and confirm I follow{" "}
-            <a href="https://www.instagram.com/faceoff.fitness?stkn=NTB3bG9rZmw3Zmhv" target="_blank" rel="noopener noreferrer" className="text-white hover:text-pink-400 font-semibold">@faceoff.fitness</a> on Instagram.{" "}
+            <a href="https://www.instagram.com/faceoff.fitness?stkn=NTB3bG9rZmw3Zmhv" target="_blank" rel="noopener noreferrer" className="text-white hover:text-pink-400 font-semibold">@faceoff.fitness</a> on Instagram and shared the challenge post.{" "}
             <span className="text-gymRed">*</span>
           </span>
         </label>

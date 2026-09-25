@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { isRegistrationWindowOpen } from "@/lib/dayjs";
 import { generateQrBuffer, generateQrDataUrl } from "@/lib/qrcode";
 import { sendRegistrationEmail } from "@/lib/mailer";
+import { generateTermsAgreementPdf } from "@/lib/pdf";
 import { RegisterSchema } from "@/lib/validation";
 import { Gender } from "@prisma/client";
 
@@ -87,9 +88,41 @@ export async function POST(req: NextRequest) {
     const qrBuffer = await generateQrBuffer(user.id);
     const qrDataUrl = await generateQrDataUrl(user.id);
 
-    // 7. Send Email #1 (non-blocking failure so registration still succeeds)
+    // 7. Generate official Terms & Conditions Agreement PDF
+    let termsPdf: Uint8Array | null = null;
     try {
-      await sendRegistrationEmail({ email: user.email, name: user.name, userId: user.id, branchName: branch.label, qrBuffer });
+      termsPdf = await generateTermsAgreementPdf({
+        userName: user.name,
+        userId: user.id,
+        emiratesId: user.emiratesId,
+        mobile: user.mobile,
+        email: user.email,
+        branchName: branch.label,
+        day1WeightKg: null,
+        day1Date: user.createdAt,
+        deadlineDate: null,
+        signatureDataUrl: null,
+        staffName: "Online Registration",
+        rulesText: settings?.rulesText,
+        termsText: settings?.termsText,
+        isRegistration: true,
+      });
+    } catch (pdfErr) {
+      console.error("Terms & Conditions PDF generation failed on registration:", pdfErr);
+    }
+
+    // 8. Send Email #1 with QR code and Terms PDF attachment (non-blocking failure)
+    try {
+      await sendRegistrationEmail({
+        email: user.email,
+        name: user.name,
+        userId: user.id,
+        branchName: branch.label,
+        qrBuffer,
+        pdfBytes: termsPdf,
+        emiratesId: user.emiratesId,
+        mobile: user.mobile,
+      });
     } catch (mailErr) {
       console.error("Email sending failed during registration:", mailErr);
     }

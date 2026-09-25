@@ -3,6 +3,7 @@ import path from "path";
 import fs from "fs";
 import dayjs, { formatDubai, DUBAI_TZ } from "./dayjs";
 import prisma from "./prisma";
+import { generateTermsAgreementPdf } from "./pdf";
 
 function createTransporter() {
   const host = process.env.SMTP_HOST || "smtp.gmail.com";
@@ -34,15 +35,42 @@ function getLogoAttachment() {
   return null;
 }
 
-const FROM_HEADER =
-  process.env.SMTP_FROM ||
-  (process.env.SMTP_USER
-    ? `"Face Off Fitness | Weight Loss Challenge" <${process.env.SMTP_USER}>`
-    : '"Face Off Fitness | Weight Loss Challenge" <events@faceoffgym.com>');
+export function getFromSender(): { name: string; address: string } {
+  const defaultName = process.env.SMTP_FROM_NAME || "FACE OFF FITNESS | Weight Loss Challenge";
+  const defaultAddress = process.env.SMTP_USER || "events@faceoffgym.com";
+
+  const rawFrom = process.env.SMTP_FROM;
+  if (!rawFrom) {
+    return { name: defaultName, address: defaultAddress };
+  }
+
+  // Handle format: "Name" <email> or 'Name' <email> or Name <email>
+  const match = rawFrom.match(/^(?:['"]?)(.*?)(?:['"]?)\s*<([^>]+)>/);
+  if (match) {
+    const cleanName = match[1].replace(/^["']|["']$/g, "").trim();
+    const cleanAddress = match[2].trim();
+    return {
+      name: cleanName || defaultName,
+      address: cleanAddress || defaultAddress,
+    };
+  }
+
+  // If it's just an email address (e.g. SMTP_FROM="events@faceoffgym.com")
+  if (rawFrom.includes("@")) {
+    return {
+      name: defaultName,
+      address: rawFrom.replace(/['"]/g, "").trim(),
+    };
+  }
+
+  return { name: defaultName, address: defaultAddress };
+}
+
+export const FROM_HEADER = `"${getFromSender().name}" <${getFromSender().address}>`;
 const COMPANY_CERTIFICATE_EMAIL = process.env.COMPANY_CERTIFICATE_EMAIL;
 
 /**
- * EMAIL #1: Public Registration Confirmation with inline QR code & User ID
+ * EMAIL #1: Public Registration Confirmation with inline QR code, User ID & Terms PDF
  */
 export async function sendRegistrationEmail(params: {
   email: string;
@@ -50,8 +78,41 @@ export async function sendRegistrationEmail(params: {
   userId: string;
   branchName: string;
   qrBuffer: Buffer;
+  pdfBytes?: Uint8Array | null;
+  emiratesId?: string;
+  mobile?: string;
 }): Promise<{ success: boolean; mocked?: boolean }> {
   const { email, name, userId, branchName, qrBuffer } = params;
+  let pdfBytes = params.pdfBytes;
+
+  // Auto-generate Terms & Conditions PDF if not provided
+  if (!pdfBytes) {
+    try {
+      const [settings, userRecord] = await Promise.all([
+        prisma.challengeSettings.findUnique({ where: { id: "singleton" } }),
+        prisma.user.findUnique({ where: { id: userId } }),
+      ]);
+      pdfBytes = await generateTermsAgreementPdf({
+        userName: name,
+        userId: userId,
+        emiratesId: userRecord?.emiratesId || params.emiratesId || "Registered Participant",
+        mobile: userRecord?.mobile || params.mobile || "",
+        email: email,
+        branchName: branchName,
+        day1WeightKg: null,
+        day1Date: userRecord?.createdAt || new Date(),
+        deadlineDate: null,
+        signatureDataUrl: null,
+        staffName: "Online Registration",
+        rulesText: settings?.rulesText,
+        termsText: settings?.termsText,
+        isRegistration: true,
+      });
+    } catch (pdfErr) {
+      console.error("Auto-generation of registration terms PDF failed:", pdfErr);
+    }
+  }
+
   const transporter = createTransporter();
   const logoAttachment = getLogoAttachment();
 
@@ -140,6 +201,25 @@ export async function sendRegistrationEmail(params: {
                     </td>
                   </tr>
                 </table>
+
+                ${pdfBytes
+      ? `
+                <!-- TERMS & CONDITIONS ATTACHMENT CARD -->
+                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #1A1A1A; border: 1px solid #262626; border-left: 4px solid #10B981; border-radius: 10px; margin: 16px 0 20px 0; text-align: left;">
+                  <tr>
+                    <td style="padding: 14px 18px;">
+                      <div style="font-size: 12px; color: #10B981 !important; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">
+                        📄 Official Terms &amp; Conditions Document Attached
+                      </div>
+                      <div style="font-size: 12px; color: #D1D5DB !important; line-height: 1.5;">
+                        Your official copy of the Club Weight Loss Challenge Terms &amp; Conditions and Competition Rules is attached to this email as a PDF document for your records.
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+                `
+      : ""
+    }
 
                 <!-- CLUB LOCATIONS -->
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 8px; margin-bottom: 18px; overflow: hidden;">
@@ -256,8 +336,19 @@ export async function sendRegistrationEmail(params: {
       cid: "qrcode",
     });
 
+    if (pdfBytes) {
+      attachments.push({
+        filename: `TermsAndConditions-${userId}.pdf`,
+        content: Buffer.from(pdfBytes),
+        contentType: "application/pdf",
+      });
+    }
+
+    const fromSender = getFromSender();
     await transporter.sendMail({
-      from: FROM_HEADER,
+      from: fromSender,
+      sender: fromSender.address,
+      replyTo: fromSender.address,
       to: email,
       subject: `🏋️ Registration Confirmed! Your Challenge Pass & Next Steps — User ID: ${userId}`,
       html,
@@ -283,8 +374,44 @@ export async function sendDay1Email(params: {
   deadlineDate: Date | string;
   rulesText?: string | null;
   pdfBytes?: Uint8Array | null;
+  emiratesId?: string;
+  mobile?: string;
+  signatureDataUrl?: string | null;
+  staffName?: string | null;
 }): Promise<{ success: boolean; mocked?: boolean }> {
-  const { email, name, userId, weightKg, branchName, day1Date, deadlineDate, pdfBytes } = params;
+  const { email, name, userId, weightKg, branchName, day1Date, deadlineDate } = params;
+  let pdfBytes = params.pdfBytes;
+
+  if (!pdfBytes) {
+    try {
+      const [settings, userRecord] = await Promise.all([
+        prisma.challengeSettings.findUnique({ where: { id: "singleton" } }),
+        prisma.user.findUnique({
+          where: { id: userId },
+          include: { weighIns: { where: { type: "DAY_1" } } },
+        }),
+      ]);
+      const day1WeighIn = userRecord?.weighIns[0];
+      pdfBytes = await generateTermsAgreementPdf({
+        userName: name,
+        userId: userId,
+        emiratesId: userRecord?.emiratesId || params.emiratesId || "Registered Participant",
+        mobile: userRecord?.mobile || params.mobile || "",
+        email: email,
+        branchName: branchName,
+        day1WeightKg: weightKg,
+        day1Date: day1Date,
+        deadlineDate: deadlineDate,
+        signatureDataUrl: day1WeighIn?.signatureUrl || params.signatureDataUrl || null,
+        staffName: params.staffName || "Authorized Club Staff",
+        rulesText: settings?.rulesText,
+        termsText: settings?.termsText,
+      });
+    } catch (day1PdfErr) {
+      console.error("Auto-generation of Day-1 agreement PDF failed:", day1PdfErr);
+    }
+  }
+
   const transporter = createTransporter();
   const logoAttachment = getLogoAttachment();
 
@@ -451,8 +578,11 @@ export async function sendDay1Email(params: {
       });
     }
 
+    const fromSender = getFromSender();
     await transporter.sendMail({
-      from: FROM_HEADER,
+      from: fromSender,
+      sender: fromSender.address,
+      replyTo: fromSender.address,
       to: email,
       subject: `⏱️ Day-1 Confirmed (${Number(weightKg).toFixed(3)} kg) — Your 30-Day Challenge Clock Has Started!`,
       html,
@@ -598,8 +728,11 @@ export async function sendFinalResultEmail(params: {
       contentType: "application/pdf",
     });
 
+    const fromSender = getFromSender();
     await transporter.sendMail({
-      from: FROM_HEADER,
+      from: fromSender,
+      sender: fromSender.address,
+      replyTo: fromSender.address,
       to: email,
       subject: `🏆 Challenge Complete! You lost ${kgLostText} — Official Weigh-In Summary`,
       html,
@@ -610,7 +743,9 @@ export async function sendFinalResultEmail(params: {
     if (COMPANY_CERTIFICATE_EMAIL) {
       try {
         await transporter.sendMail({
-          from: FROM_HEADER,
+          from: fromSender,
+          sender: fromSender.address,
+          replyTo: fromSender.address,
           to: COMPANY_CERTIFICATE_EMAIL,
           subject: `📄 Participant Certificate: ${name} (${userId}) — Lost ${kgLostText}`,
           text: `Official signed PDF certificate of completion for participant ${name} (ID: ${userId}).\n\nStarting Weight: ${Number(day1WeightKg).toFixed(3)} kg\nFinal Weight: ${Number(finalWeightKg).toFixed(3)} kg\nTotal Lost: ${kgLostText}\n\nThe signed PDF certificate is attached.`,
@@ -790,8 +925,11 @@ export async function sendReminderEmail(params: {
     const attachments: any[] = [];
     if (logoAttachment) attachments.push(logoAttachment);
 
+    const fromSender = getFromSender();
     await transporter.sendMail({
-      from: FROM_HEADER,
+      from: fromSender,
+      sender: fromSender.address,
+      replyTo: fromSender.address,
       to: email,
       subject,
       html,
