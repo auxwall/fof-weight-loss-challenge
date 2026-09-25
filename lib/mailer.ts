@@ -3,7 +3,7 @@ import path from "path";
 import fs from "fs";
 import dayjs, { formatDubai, DUBAI_TZ } from "./dayjs";
 import prisma from "./prisma";
-import { generateTermsAgreementPdf } from "./pdf";
+import { generateTermsAgreementPdf, resolveAssetPath } from "./pdf";
 
 function createTransporter() {
   const host = process.env.SMTP_HOST || "smtp.gmail.com";
@@ -20,12 +20,15 @@ function createTransporter() {
     port,
     secure: port === 465,
     auth: { user, pass },
+    connectionTimeout: 15000,
+    greetingTimeout: 15000,
+    socketTimeout: 30000,
   });
 }
 
 function getLogoAttachment() {
-  const logoPath = path.join(process.cwd(), "public", "logo.png");
-  if (fs.existsSync(logoPath)) {
+  const logoPath = resolveAssetPath("logo.png");
+  if (logoPath && fs.existsSync(logoPath)) {
     return {
       filename: "logo.png",
       path: logoPath,
@@ -351,7 +354,8 @@ export async function sendDay1Email(params: {
   signatureDataUrl?: string | null;
   staffName?: string | null;
 }): Promise<{ success: boolean; mocked?: boolean }> {
-  const { email, name, userId, weightKg, branchName, day1Date, deadlineDate } = params;
+  const { name, userId, weightKg, branchName, day1Date, deadlineDate } = params;
+  const cleanEmail = params.email.trim();
   let pdfBytes = params.pdfBytes;
 
   if (!pdfBytes) {
@@ -369,7 +373,7 @@ export async function sendDay1Email(params: {
         userId: userId,
         emiratesId: userRecord?.emiratesId || params.emiratesId || "Registered Participant",
         mobile: userRecord?.mobile || params.mobile || "",
-        email: email,
+        email: cleanEmail,
         branchName: branchName,
         day1WeightKg: weightKg,
         day1Date: day1Date,
@@ -380,9 +384,28 @@ export async function sendDay1Email(params: {
         termsText: settings?.termsText,
       });
     } catch (day1PdfErr) {
-      console.error("Auto-generation of Day-1 agreement PDF failed:", day1PdfErr);
+      console.error("Auto-generation of Day-1 agreement PDF failed, trying emergency fallback:", day1PdfErr);
+      try {
+        pdfBytes = await generateTermsAgreementPdf({
+          userName: name || "Participant",
+          userId: userId,
+          emiratesId: params.emiratesId || "Registered Participant",
+          mobile: params.mobile || "",
+          email: cleanEmail,
+          branchName: branchName,
+          day1WeightKg: weightKg,
+          day1Date: day1Date,
+          deadlineDate: deadlineDate,
+          signatureDataUrl: params.signatureDataUrl || null,
+          staffName: params.staffName || "Authorized Club Staff",
+        });
+      } catch (fallbackErr) {
+        console.error("Emergency fallback Terms PDF generation failed:", fallbackErr);
+      }
     }
   }
+
+  console.log(`[sendDay1Email] Attaching signed Terms & Conditions PDF for ${userId}, size: ${pdfBytes?.length || 0} bytes`);
 
   const transporter = createTransporter();
   const logoAttachment = getLogoAttachment();
@@ -555,7 +578,7 @@ export async function sendDay1Email(params: {
       from: fromSender,
       sender: fromSender.address,
       replyTo: fromSender.address,
-      to: email,
+      to: cleanEmail,
       subject: `⏱️ Day-1 Confirmed (${Number(weightKg).toFixed(3)} kg) — Your 30-Day Challenge Clock Has Started!`,
       html,
       attachments,
