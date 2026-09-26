@@ -26,10 +26,14 @@ export interface ChallengePdfData {
 export function resolveAssetPath(relativePath: string): string | null {
   const cleanPath = relativePath.replace(/^[/\\]+/, "");
   const candidates = [
+    path.join(process.cwd(), "storage", cleanPath),
     path.join(process.cwd(), "public", cleanPath),
     path.join(process.cwd(), cleanPath),
+    path.join(__dirname, "..", "storage", cleanPath),
     path.join(__dirname, "..", "public", cleanPath),
+    path.join(__dirname, "..", "..", "storage", cleanPath),
     path.join(__dirname, "..", "..", "public", cleanPath),
+    path.join(__dirname, "storage", cleanPath),
     path.join(__dirname, "public", cleanPath),
   ];
   for (const c of candidates) {
@@ -733,14 +737,15 @@ export async function generateTermsAgreementPdf(data: TermsAgreementPdfData): Pr
         isPng = !data.signatureDataUrl.includes("image/jpeg") && !data.signatureDataUrl.includes("image/jpg");
       } else {
         // Resolve from filesystem
-        const rawPath = data.signatureDataUrl.trim();
-        const cand = resolveAssetPath(rawPath.replace(/^\/?public\/?/, ""));
+        const rawPath = data.signatureDataUrl.trim().replace(/^[/\\]+/, "");
+        const cand = resolveAssetPath(rawPath.replace(/^public[/\\]/, ""));
         if (cand && fs.existsSync(cand)) {
           sigBytes = fs.readFileSync(cand);
           isPng = !cand.toLowerCase().endsWith(".jpg") && !cand.toLowerCase().endsWith(".jpeg");
         } else {
-          // Fallback direct check
+          // Fallback direct check (checks storage/ and public/)
           const fallbackCandidates = [
+            path.join(process.cwd(), "storage", rawPath),
             path.join(process.cwd(), "public", rawPath),
             path.join(process.cwd(), rawPath),
             rawPath,

@@ -7,7 +7,7 @@ import { sendReminderEmail } from "@/lib/mailer";
 
 export const REMINDER_CRON_JOB_NAME = "finalWeighInReminderJob";
 
-const TRACKER_FILE = path.join(process.cwd(), "public", "uploads", "Auxwall", "sent_reminders.json");
+const TRACKER_FILE = path.join(process.cwd(), "storage", "uploads", "Auxwall", "sent_reminders.json");
 
 interface ReminderRecord {
   day28SentAt?: string;

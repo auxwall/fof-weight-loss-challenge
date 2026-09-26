@@ -37,8 +37,8 @@ export async function saveNewImage({ fileName, folder, base64Data, buffer, fileP
   const cleanFileName = fileName.replace(/[^a-zA-Z0-9_\-]/g, "_");
   const fullFileName = `${cleanFileName}.${extension}`;
 
-  // Local filesystem storage inside Next.js public directory
-  const dir = path.join(process.cwd(), "public", "uploads", "Auxwall", folder);
+  // Local filesystem storage outside public directory for private authenticated serving
+  const dir = path.join(process.cwd(), "storage", "uploads", "Auxwall", folder);
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
